@@ -1,0 +1,21 @@
+{
+  "name": "clinic-queue-sass",
+  "private": true,
+  "packageManager": "yarn@4.6.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "lint": "yarn workspaces foreach -A -pt run lint",
+    "format": "yarn workspaces foreach -A -pt run format",
+    "typecheck": "yarn workspaces foreach -A -pt run typecheck",
+    "build": "yarn workspaces foreach -A -pt run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.2",
+    "typescript-eslint": "^8.24.0"
+  }
+}

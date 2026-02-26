@@ -41,7 +41,8 @@ Backend: Node + Express + TypeScript, MongoDB (Mongoose), service classes with s
 
 - Sidebar/topbar layout
 - Theme tokens(google material m3 tonal color pallet) ex: --color-primary-0: #000, --color-primary-10: #04042c,... --color-primary-100: #fff,
-- Button/Input/Table/Modal/Toast built with tailwind-variants
+- Button/Input/TextArea/Table/Modal/Badge/CheckBox/RadioButton/Switch/FieldGroup built with tailwind-variants
+- Toast(Sonner), Select(React-Select) build with using libs
 
 ### Milestone 4 — User/Membership Management
 
