@@ -1,12 +1,121 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
-
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-*: initial;
+  /* Base tonal tokens */
+  --color-primary-10: #00201f;
+  --color-primary-70: #4dd9d2;
+  --color-primary-80: #70f6ee;
+
+  --color-secondary-10: #003735;
+  --color-secondary-80: #81d3cc;
+  --color-secondary-90: #9defea;
+
+  --color-tertiary-80: #b8abff;
+
+  --color-neutral-0: #000000;
+  --color-neutral-10: #0e1514;
+  --color-neutral-20: #161d1d;
+  --color-neutral-30: #1a2121;
+  --color-neutral-40: #242b2b;
+  --color-neutral-70: #889392;
+  --color-neutral-90: #bec9c7;
+  --color-neutral-95: #dce4e3;
+  --color-neutral-99: #f1fbfa;
+  --color-neutral-100: #ffffff;
+
+  --color-neutral-variant-70: #889392;
+  --color-neutral-variant-80: #3f4948;
+  --color-neutral-variant-90: #2f3636;
+  --color-neutral-variant-95: #242b2b;
+
+  --color-success-base: #5dd887;
+  --color-danger-base: #ffb4ab;
+  --color-warning-base: #ffb958;
+
+  /* App semantic tokens used by classes */
+  --color-primary: var(--color-primary-70);
+  --color-primary-hover: var(--color-primary-80);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary-70) 16%, transparent);
+  --color-on-primary: var(--color-primary-10);
+
+  --color-secondary: var(--color-secondary-80);
+  --color-secondary-hover: var(--color-secondary-90);
+  --color-on-secondary: var(--color-secondary-10);
+
+  --color-tertiary: var(--color-tertiary-80);
+  --color-tertiary-soft: color-mix(in srgb, var(--color-tertiary-80) 16%, transparent);
+
+  --color-success: var(--color-success-base);
+  --color-success-soft: color-mix(in srgb, var(--color-success-base) 16%, transparent);
+  --color-danger: var(--color-danger-base);
+  --color-danger-soft: color-mix(in srgb, var(--color-danger-base) 16%, transparent);
+  --color-danger-hover: color-mix(in srgb, var(--color-danger-base) 88%, black);
+  --color-warning: var(--color-warning-base);
+  --color-warning-soft: color-mix(in srgb, var(--color-warning-base) 16%, transparent);
+
+  /* Shape */
+  --radius-*: initial;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --spacing-toolbar: 62px;
+  --spacing-sidebar: 240px;
+
+  --text-*: initial;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  /* 
+    10px  → labels, th, nav badge, section labels
+    11px  → hints, badges, status, brand sub, ⌘K
+    12px  → card sub, stat label, chips
+    13px  → body, nav, buttons, td, search
+    13.5px→ nav item (slightly larger for readability)
+    14px  → form inputs (slightly larger for legibility)
+    15px  → card title, brand name
+    24px  → page H1
+    28px  → stat card big number 
+  */
+
+  --font-*: initial;
+  --font-sans: "Plus Jakarta Sans";
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-  background: #f7f9fc;
-  color: #1d2433;
+  min-height: 100vh;
+  /* font-family: "Plus Jakarta Sans", "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif; */
+  color: var(--color-neutral-95);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+@layer utilities {
+  .border-subtle {
+    @apply border-neutral-variant-90/80;
+  }
 }

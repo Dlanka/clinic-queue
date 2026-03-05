@@ -1,0 +1,53 @@
+﻿import { Activity } from "lucide-react";
+import { Avatar, Button, Chip, IconButton, Input } from "../ui";
+
+interface ToolbarProps {
+  onOpenMenu: () => void;
+  onLogout: () => void;
+  logoutPending?: boolean;
+}
+
+export function Toolbar({ onOpenMenu, onLogout, logoutPending = false }: ToolbarProps) {
+  return (
+    <header className="fixed inset-x-0 top-0 z-30 flex h-toolbar items-center gap-3 bg-neutral-20 px-0 pr-3 backdrop-blur-sm md:pr-6">
+      <div className="flex h-toolbar w-60 items-center gap-3 px-5">
+        <div className="grid h-9 w-9 place-items-center rounded-lg bg-linear-to-br from-primary to-tertiary text-neutral-0 shadow-[0_0_16px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]">
+          <Activity size={18} />
+        </div>
+        <div>
+          <p className="text-base font-extrabold leading-none tracking-[-0.02em] text-neutral-95">
+            Queue
+          </p>
+          <p className="mt-0.5 text-2xs font-medium text-neutral-70">Milestone 3 · SaaS</p>
+        </div>
+      </div>
+
+      <div className="ml-auto hidden items-center gap-3 md:flex">
+        <Input
+          placeholder="Search patients, tickets"
+          size="sm"
+          rounded="full"
+          containerClassName="w-[240px]"
+          startIconName="search"
+          shortcutKey="Ctrl+K"
+        />
+        <Chip tone="tertiary" label="Demo Clinic" iconName="home" />
+        <Chip tone="success" withDot label="Online" />
+        <IconButton iconName="bell" aria-label="Notifications" />
+        <Button intent="ghost" size="sm" onClick={onLogout} disabled={logoutPending}>
+          Logout
+        </Button>
+        <Avatar label="AD" aria-label="Open account" />
+      </div>
+
+      <div className="ml-auto md:hidden">
+        <IconButton
+          iconName="menu"
+          tone="primary"
+          onClick={onOpenMenu}
+          aria-label="Open navigation"
+        />
+      </div>
+    </header>
+  );
+}
