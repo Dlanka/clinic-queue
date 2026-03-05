@@ -2,13 +2,18 @@ import { Schema, model } from "mongoose";
 
 export interface Tenant {
   name: string;
-  slug: string;
+  status: "ACTIVE" | "INACTIVE";
 }
 
 const tenantSchema = new Schema<Tenant>(
   {
     name: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true }
+    status: {
+      type: String,
+      enum: ["ACTIVE", "INACTIVE"],
+      default: "ACTIVE",
+      required: true
+    }
   },
   { timestamps: true }
 );

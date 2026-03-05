@@ -4,7 +4,7 @@ export interface TenantMember {
   tenantId: Types.ObjectId;
   accountId: Types.ObjectId;
   roles: string[];
-  isActive: boolean;
+  status: "ACTIVE" | "INVITED" | "DISABLED";
 }
 
 const tenantMemberSchema = new Schema<TenantMember>(
@@ -12,7 +12,12 @@ const tenantMemberSchema = new Schema<TenantMember>(
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
     accountId: { type: Schema.Types.ObjectId, ref: "Account", required: true, index: true },
     roles: { type: [String], required: true, default: [] },
-    isActive: { type: Boolean, default: true }
+    status: {
+      type: String,
+      enum: ["ACTIVE", "INVITED", "DISABLED"],
+      default: "ACTIVE",
+      required: true
+    }
   },
   { timestamps: true }
 );

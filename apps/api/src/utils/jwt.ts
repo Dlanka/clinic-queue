@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
 import type { StringValue } from "ms";
 import { env } from "../config/env";
-import type { AuthContext, TokenPayload } from "../types/auth";
+import type { AuthContext, LoginSelectionPayload, TokenPayload } from "../types/auth";
 
 function normalizePayload(payload: TokenPayload): AuthContext {
   return {
     accountId: payload.accountId,
+    memberId: payload.memberId,
     tenantId: payload.tenantId,
     roles: payload.roles
   };
@@ -16,6 +17,7 @@ export function signAccessToken(auth: AuthContext) {
     {
       sub: auth.accountId,
       accountId: auth.accountId,
+      memberId: auth.memberId,
       tenantId: auth.tenantId,
       roles: auth.roles
     },
@@ -29,6 +31,7 @@ export function signRefreshToken(auth: AuthContext) {
     {
       sub: auth.accountId,
       accountId: auth.accountId,
+      memberId: auth.memberId,
       tenantId: auth.tenantId,
       roles: auth.roles
     },
@@ -45,4 +48,14 @@ export function verifyAccessToken(token: string) {
 export function verifyRefreshToken(token: string) {
   const payload = jwt.verify(token, env.JWT_REFRESH_SECRET) as TokenPayload;
   return normalizePayload(payload);
+}
+
+export function signLoginToken(payload: LoginSelectionPayload) {
+  return jwt.sign(payload, env.JWT_LOGIN_SECRET, {
+    expiresIn: env.JWT_LOGIN_TTL as StringValue
+  });
+}
+
+export function verifyLoginToken(token: string) {
+  return jwt.verify(token, env.JWT_LOGIN_SECRET) as LoginSelectionPayload;
 }

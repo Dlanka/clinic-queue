@@ -2,7 +2,9 @@ import type { RequestHandler } from "express";
 import { CSRF_COOKIE_NAME } from "../constants/auth";
 import { HttpError } from "../utils/http-error";
 
-const EXEMPT_PATHS = new Set(["/health", "/auth/login"]);
+// Login/select-tenant/refresh happen before or during session bootstrap.
+// They are exempted from double-submit checks intentionally.
+const EXEMPT_PATHS = new Set(["/health", "/auth/login", "/auth/select-tenant", "/auth/refresh"]);
 const PROTECTED_METHODS = new Set(["POST", "PATCH", "DELETE"]);
 
 export const csrfGuard: RequestHandler = (req, _res, next) => {

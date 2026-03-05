@@ -14,3 +14,16 @@ export function validateBody(schema: ZodType): RequestHandler {
     return next();
   };
 }
+
+export function validateParams(schema: ZodType): RequestHandler {
+  return (req, _res, next) => {
+    const parsed = schema.safeParse(req.params);
+
+    if (!parsed.success) {
+      return next(new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid request params"));
+    }
+
+    req.params = parsed.data as never;
+    return next();
+  };
+}

@@ -9,9 +9,15 @@ const loginSchema = z.object({
   password: z.string().min(1)
 });
 
+const selectTenantSchema = z.object({
+  loginToken: z.string().min(1),
+  tenantId: z.string().regex(/^[a-f0-9]{24}$/i, "Invalid tenant id")
+});
+
 const authRouter = Router();
 
 authRouter.post("/login", validateBody(loginSchema), AuthController.login);
+authRouter.post("/select-tenant", validateBody(selectTenantSchema), AuthController.selectTenant);
 authRouter.post("/refresh", AuthController.refresh);
 authRouter.post("/logout", requireAuth, AuthController.logout);
 authRouter.get("/me", requireAuth, AuthController.me);

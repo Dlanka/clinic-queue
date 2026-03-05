@@ -4,7 +4,7 @@ export interface Account {
   email: string;
   passwordHash: string;
   name: string;
-  isActive: boolean;
+  status: "ACTIVE" | "DISABLED";
 }
 
 const accountSchema = new Schema<Account>(
@@ -12,7 +12,12 @@ const accountSchema = new Schema<Account>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     name: { type: String, required: true, trim: true },
-    isActive: { type: Boolean, default: true }
+    status: {
+      type: String,
+      enum: ["ACTIVE", "DISABLED"],
+      default: "ACTIVE",
+      required: true
+    }
   },
   { timestamps: true }
 );

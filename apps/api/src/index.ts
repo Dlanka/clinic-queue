@@ -4,19 +4,19 @@ import { connectToDatabase } from "./config/database";
 import { env } from "./config/env";
 import { csrfGuard } from "./middlewares/csrf-guard";
 import { errorHandler } from "./middlewares/error-handler";
-import { resolveTenant } from "./middlewares/resolve-tenant";
 import { authRouter } from "./routes/auth.routes";
 import { healthRouter } from "./routes/health.routes";
+import { memberRouter } from "./routes/member.routes";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(resolveTenant);
 app.use(csrfGuard);
 
 app.use(healthRouter);
 app.use("/auth", authRouter);
+app.use("/members", memberRouter);
 
 app.use(errorHandler);
 

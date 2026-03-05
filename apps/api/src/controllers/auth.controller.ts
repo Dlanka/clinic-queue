@@ -1,41 +1,47 @@
 import type { CookieOptions, RequestHandler } from "express";
-import { ACCESS_COOKIE_NAME, CSRF_COOKIE_NAME, REFRESH_COOKIE_NAME } from "../constants/auth";
 import { env, isProduction } from "../config/env";
+import { ACCESS_COOKIE_NAME, CSRF_COOKIE_NAME, REFRESH_COOKIE_NAME } from "../constants/auth";
 import { AuthService } from "../services/auth.service";
 import { HttpError } from "../utils/http-error";
 import { generateCsrfToken } from "../utils/crypto";
 
+const sameSite: CookieOptions["sameSite"] = env.COOKIE_SAME_SITE;
+
 const accessCookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: isProduction,
+  sameSite,
+  secure: isProduction || sameSite === "none",
   path: "/",
   maxAge: 15 * 60 * 1000
 };
 
 const refreshCookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: isProduction,
+  sameSite,
+  secure: isProduction || sameSite === "none",
   path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000
 };
 
 const csrfCookieOptions: CookieOptions = {
   httpOnly: false,
-  sameSite: "lax",
-  secure: isProduction,
+  sameSite,
+  secure: isProduction || sameSite === "none",
   path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000
 };
 
-function writeAuthCookies(res: Parameters<RequestHandler>[1], accessToken: string, refreshToken: string) {
+function writeSessionCookies(
+  res: Parameters<RequestHandler>[1],
+  accessToken: string,
+  refreshToken: string
+) {
   res.cookie(ACCESS_COOKIE_NAME, accessToken, accessCookieOptions);
   res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions);
   res.cookie(CSRF_COOKIE_NAME, generateCsrfToken(), csrfCookieOptions);
 }
 
-function clearAuthCookies(res: Parameters<RequestHandler>[1]) {
+function clearSessionCookies(res: Parameters<RequestHandler>[1]) {
   const clearOptions: CookieOptions = { path: "/" };
   res.clearCookie(ACCESS_COOKIE_NAME, clearOptions);
   res.clearCookie(REFRESH_COOKIE_NAME, clearOptions);
@@ -45,22 +51,36 @@ function clearAuthCookies(res: Parameters<RequestHandler>[1]) {
 export const AuthController = {
   login: (async (req, res, next) => {
     try {
-      if (!req.tenantId) {
-        throw new HttpError(400, "Missing tenant");
-      }
-
       const result = await AuthService.login({
-        tenantId: req.tenantId,
         email: req.body.email,
         password: req.body.password
       });
 
-      writeAuthCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      if (result.mode === "SELECT_TENANT") {
+        clearSessionCookies(res);
+        return res.status(200).json({
+          mode: "SELECT_TENANT",
+          loginToken: result.loginToken,
+          tenants: result.tenants
+        });
+      }
 
-      return res.status(200).json({
-        user: result.user,
-        tokenType: "cookie"
+      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      return res.status(200).json({ mode: "LOGGED_IN" });
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  selectTenant: (async (req, res, next) => {
+    try {
+      const result = await AuthService.selectTenant({
+        loginToken: req.body.loginToken,
+        tenantId: req.body.tenantId
       });
+
+      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      return res.status(200).json({ mode: "LOGGED_IN" });
     } catch (error) {
       return next(error);
     }
@@ -68,21 +88,15 @@ export const AuthController = {
 
   refresh: (async (req, res, next) => {
     try {
-      if (!req.tenantId) {
-        throw new HttpError(400, "Missing tenant");
-      }
-
       const refreshToken = req.cookies[REFRESH_COOKIE_NAME] as string | undefined;
       if (!refreshToken) {
         throw new HttpError(401, "Refresh token missing");
       }
 
-      const result = await AuthService.refresh(req.tenantId, refreshToken);
-      writeAuthCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      const result = await AuthService.refresh(refreshToken);
+      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
 
-      return res.status(200).json({
-        user: result.user
-      });
+      return res.status(200).json({ ok: true });
     } catch (error) {
       return next(error);
     }
@@ -90,8 +104,8 @@ export const AuthController = {
 
   logout: (async (_req, res, next) => {
     try {
-      clearAuthCookies(res);
-      return res.status(200).json({ message: "Logged out" });
+      clearSessionCookies(res);
+      return res.status(200).json({ ok: true });
     } catch (error) {
       return next(error);
     }
@@ -103,8 +117,8 @@ export const AuthController = {
         throw new HttpError(401, "Unauthenticated");
       }
 
-      const user = await AuthService.me(req.auth);
-      return res.status(200).json({ user, env: env.NODE_ENV });
+      const session = await AuthService.me(req.auth);
+      return res.status(200).json(session);
     } catch (error) {
       return next(error);
     }

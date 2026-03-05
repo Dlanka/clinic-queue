@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { ACCESS_COOKIE_NAME } from "../constants/auth";
 import { AccountModel } from "../models/account.model";
 import { TenantMemberModel } from "../models/tenant-member.model";
+import { TenantModel } from "../models/tenant.model";
 import { verifyAccessToken } from "../utils/jwt";
 import { HttpError } from "../utils/http-error";
 
@@ -14,28 +15,26 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
 
   try {
     const payload = verifyAccessToken(token);
-    const tenantId = req.tenantId;
 
-    if (!tenantId || payload.tenantId !== tenantId) {
-      return next(new HttpError(403, "Tenant mismatch"));
-    }
-
-    const [account, membership] = await Promise.all([
-      AccountModel.findOne({ _id: payload.accountId, isActive: true }).lean(),
+    const [account, membership, tenant] = await Promise.all([
+      AccountModel.findOne({ _id: payload.accountId, status: "ACTIVE" }).lean(),
       TenantMemberModel.findOne({
-        tenantId,
+        _id: payload.memberId,
+        tenantId: payload.tenantId,
         accountId: payload.accountId,
-        isActive: true
-      }).lean()
+        status: "ACTIVE"
+      }).lean(),
+      TenantModel.findOne({ _id: payload.tenantId, status: "ACTIVE" }).lean()
     ]);
 
-    if (!account || !membership) {
+    if (!account || !membership || !tenant) {
       return next(new HttpError(401, "Authentication invalid"));
     }
 
     req.auth = {
       accountId: payload.accountId,
-      tenantId,
+      memberId: payload.memberId,
+      tenantId: payload.tenantId,
       roles: membership.roles
     };
     return next();

@@ -5,49 +5,78 @@ import { TenantMemberModel } from "../models/tenant-member.model";
 import { TenantModel } from "../models/tenant.model";
 
 const seedConfig = {
-  tenantName: process.env.SEED_TENANT_NAME ?? "Demo Clinic",
-  tenantSlug: (process.env.SEED_TENANT_SLUG ?? "demo-clinic").toLowerCase(),
-  adminName: process.env.SEED_ADMIN_NAME ?? "Admin User",
-  adminEmail: (process.env.SEED_ADMIN_EMAIL ?? "admin@demo.com").toLowerCase(),
-  adminPassword: process.env.SEED_ADMIN_PASSWORD ?? "Admin123!"
+  tenantAName: process.env.SEED_TENANT_A_NAME ?? "Tenant A Clinic",
+  tenantBName: process.env.SEED_TENANT_B_NAME ?? "Tenant B Clinic",
+  memberName: process.env.SEED_MEMBER_NAME ?? "Multi Tenant User",
+  memberEmail: (process.env.SEED_MEMBER_EMAIL ?? "admin@demo.com").toLowerCase(),
+  memberPassword: process.env.SEED_MEMBER_PASSWORD ?? "Admin123!"
 };
 
 async function run() {
   await connectToDatabase();
 
-  const tenant = await TenantModel.findOneAndUpdate(
-    { slug: seedConfig.tenantSlug },
-    { name: seedConfig.tenantName, slug: seedConfig.tenantSlug },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  try {
+    await TenantModel.collection.dropIndex("slug_1");
+    console.log("Dropped legacy tenants.slug_1 index");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!message.includes("index not found")) {
+      throw error;
+    }
+  }
 
-  const passwordHash = await bcrypt.hash(seedConfig.adminPassword, 12);
+  const [tenantA, tenantB] = await Promise.all([
+    TenantModel.findOneAndUpdate(
+      { name: seedConfig.tenantAName },
+      { name: seedConfig.tenantAName, status: "ACTIVE" },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+    ),
+    TenantModel.findOneAndUpdate(
+      { name: seedConfig.tenantBName },
+      { name: seedConfig.tenantBName, status: "ACTIVE" },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+    )
+  ]);
+
+  const passwordHash = await bcrypt.hash(seedConfig.memberPassword, 12);
   const account = await AccountModel.findOneAndUpdate(
-    { email: seedConfig.adminEmail },
+    { email: seedConfig.memberEmail },
     {
-      email: seedConfig.adminEmail,
-      name: seedConfig.adminName,
+      email: seedConfig.memberEmail,
+      name: seedConfig.memberName,
       passwordHash,
-      isActive: true
+      status: "ACTIVE"
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
   );
 
-  await TenantMemberModel.findOneAndUpdate(
-    { tenantId: tenant._id, accountId: account._id },
-    {
-      tenantId: tenant._id,
-      accountId: account._id,
-      roles: ["ADMIN"],
-      isActive: true
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  await Promise.all([
+    TenantMemberModel.findOneAndUpdate(
+      { tenantId: tenantA._id, accountId: account._id },
+      {
+        tenantId: tenantA._id,
+        accountId: account._id,
+        roles: ["ADMIN"],
+        status: "ACTIVE"
+      },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+    ),
+    TenantMemberModel.findOneAndUpdate(
+      { tenantId: tenantB._id, accountId: account._id },
+      {
+        tenantId: tenantB._id,
+        accountId: account._id,
+        roles: ["DOCTOR"],
+        status: "ACTIVE"
+      },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+    )
+  ]);
 
   console.log("Seed completed");
-  console.log(`Tenant ID: ${tenant._id.toString()}`);
-  console.log(`Admin Email: ${seedConfig.adminEmail}`);
-  console.log("Admin Roles: ADMIN");
+  console.log(`Account Email: ${seedConfig.memberEmail}`);
+  console.log(`Tenant A ID: ${tenantA._id.toString()} roles: ADMIN`);
+  console.log(`Tenant B ID: ${tenantB._id.toString()} roles: DOCTOR`);
 }
 
 run()
