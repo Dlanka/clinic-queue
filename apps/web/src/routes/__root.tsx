@@ -1,9 +1,8 @@
-import axios from "axios";
 import { Navigate, Outlet, createRootRoute, useRouterState } from "@tanstack/react-router";
-import { AppShell } from "../components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { useMe } from "@/hooks/use-me";
 
-export const rootRoute = createRootRoute({
+export const Route = createRootRoute({
   component: RootLayout
 });
 
@@ -25,15 +24,7 @@ function RootLayout() {
   }
 
   if (meQuery.error) {
-    if (axios.isAxiosError(meQuery.error) && meQuery.error.response?.status === 401) {
-      return <Navigate to="/login" />;
-    }
-
-    return (
-      <div className="grid min-h-screen place-items-center bg-neutral-20 text-danger">
-        Unable to validate session
-      </div>
-    );
+    return <Navigate to="/login" />;
   }
 
   return (

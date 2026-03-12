@@ -5,9 +5,9 @@ export const tableStyles = tv({
     wrapper: "overflow-hidden border-y border-subtle bg-neutral-30",
     table: "min-w-full border-collapse",
     head: "bg-neutral-30",
-    th: "px-4 py-2.5 text-left text-2xs font-semibold uppercase tracking-[0.08em] text-neutral-70",
+    th: "px-4 py-2.5 text-left text-2xs font-semibold uppercase tracking-[0.08em] text-neutral-70 first:pl-6 last:pr-6",
     row: "border-t border-subtle transition-colors hover:bg-neutral-30",
-    td: "px-4 py-3 text-sm text-neutral-95",
+    td: "px-4 py-3 text-sm text-neutral-95 first:pl-6 last:pr-6",
     empty: "px-4 py-8 text-center text-sm text-neutral-70"
   }
 });

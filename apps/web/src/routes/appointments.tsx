@@ -1,10 +1,7 @@
-import { createRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { PlaceholderPage } from "../components/placeholder-page";
-import { rootRoute } from "./root";
 
-export const appointmentsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "appointments",
+export const Route = createFileRoute("/appointments")({
   component: () => (
     <PlaceholderPage
       title="Appointments"

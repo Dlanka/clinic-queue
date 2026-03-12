@@ -55,7 +55,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const logoutMutation = useMutation({
     mutationFn: AuthService.logout,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: meQueryKey });
+      queryClient.removeQueries({ queryKey: meQueryKey });
       await navigate({ to: "/login" });
       toast.success("Logged out");
     },

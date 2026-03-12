@@ -9,6 +9,7 @@ export * from "./icon-button";
 export * from "./input";
 export * from "./modal";
 export * from "./radio-button";
+export * from "./right-panel-modal";
 export * from "./select";
 export * from "./switch";
 export * from "./table";

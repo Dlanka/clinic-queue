@@ -1,4 +1,4 @@
-import { createRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { CalendarDays, ClipboardList, Clock3, UserRound } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -20,7 +20,6 @@ import {
   Textarea,
   useToast
 } from "../components/ui";
-import { rootRoute } from "./root";
 
 const intakeSchema = z.object({
   patientName: z.string().min(2, "Patient name is required"),
@@ -70,9 +69,7 @@ const queueRows: Array<{
   { id: "Q-1094", name: "James Reyes", doctor: "Dr. Lin", status: "CANCELLED" }
 ];
 
-export const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
+export const Route = createFileRoute("/")({
   component: DashboardPage
 });
 

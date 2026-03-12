@@ -1,10 +1,7 @@
-import { createRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { PlaceholderPage } from "../components/placeholder-page";
-import { rootRoute } from "./root";
 
-export const queueRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "queue",
+export const Route = createFileRoute("/queue")({
   component: () => (
     <PlaceholderPage
       title="Queue"

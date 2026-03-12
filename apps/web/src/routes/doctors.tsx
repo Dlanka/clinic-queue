@@ -1,14 +1,6 @@
-import { createRoute } from "@tanstack/react-router";
-import { PlaceholderPage } from "../components/placeholder-page";
-import { rootRoute } from "./root";
+import { createFileRoute } from "@tanstack/react-router";
+import { DoctorsPage } from "@/features/doctors";
 
-export const doctorsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "doctors",
-  component: () => (
-    <PlaceholderPage
-      title="Doctors"
-      description="Configure doctors and doctor-specific availability data."
-    />
-  )
+export const Route = createFileRoute("/doctors")({
+  component: DoctorsPage
 });
