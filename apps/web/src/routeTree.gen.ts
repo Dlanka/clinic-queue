@@ -16,8 +16,13 @@ import { Route as PatientsRouteImport } from './routes/patients'
 import { Route as MedicinesRouteImport } from './routes/medicines'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DoctorsRouteImport } from './routes/doctors'
+import { Route as ConsultationRouteImport } from './routes/consultation'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QueueIndexRouteImport } from './routes/queue.index'
+import { Route as ConsultationIndexRouteImport } from './routes/consultation.index'
+import { Route as QueueQueueIdRouteImport } from './routes/queue.$queueId'
+import { Route as ConsultationQueueIdRouteImport } from './routes/consultation.$queueId'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -54,6 +59,11 @@ const DoctorsRoute = DoctorsRouteImport.update({
   path: '/doctors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsultationRoute = ConsultationRouteImport.update({
+  id: '/consultation',
+  path: '/consultation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppointmentsRoute = AppointmentsRouteImport.update({
   id: '/appointments',
   path: '/appointments',
@@ -64,17 +74,42 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QueueIndexRoute = QueueIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => QueueRoute,
+} as any)
+const ConsultationIndexRoute = ConsultationIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ConsultationRoute,
+} as any)
+const QueueQueueIdRoute = QueueQueueIdRouteImport.update({
+  id: '/$queueId',
+  path: '/$queueId',
+  getParentRoute: () => QueueRoute,
+} as any)
+const ConsultationQueueIdRoute = ConsultationQueueIdRouteImport.update({
+  id: '/$queueId',
+  path: '/$queueId',
+  getParentRoute: () => ConsultationRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/consultation': typeof ConsultationRouteWithChildren
   '/doctors': typeof DoctorsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
-  '/queue': typeof QueueRoute
+  '/queue': typeof QueueRouteWithChildren
   '/users': typeof UsersRoute
+  '/consultation/$queueId': typeof ConsultationQueueIdRoute
+  '/queue/$queueId': typeof QueueQueueIdRoute
+  '/consultation/': typeof ConsultationIndexRoute
+  '/queue/': typeof QueueIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -84,26 +119,35 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
-  '/queue': typeof QueueRoute
   '/users': typeof UsersRoute
+  '/consultation/$queueId': typeof ConsultationQueueIdRoute
+  '/queue/$queueId': typeof QueueQueueIdRoute
+  '/consultation': typeof ConsultationIndexRoute
+  '/queue': typeof QueueIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/consultation': typeof ConsultationRouteWithChildren
   '/doctors': typeof DoctorsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
-  '/queue': typeof QueueRoute
+  '/queue': typeof QueueRouteWithChildren
   '/users': typeof UsersRoute
+  '/consultation/$queueId': typeof ConsultationQueueIdRoute
+  '/queue/$queueId': typeof QueueQueueIdRoute
+  '/consultation/': typeof ConsultationIndexRoute
+  '/queue/': typeof QueueIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/appointments'
+    | '/consultation'
     | '/doctors'
     | '/login'
     | '/medicines'
@@ -111,6 +155,10 @@ export interface FileRouteTypes {
     | '/prescriptions'
     | '/queue'
     | '/users'
+    | '/consultation/$queueId'
+    | '/queue/$queueId'
+    | '/consultation/'
+    | '/queue/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,12 +168,16 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/patients'
     | '/prescriptions'
-    | '/queue'
     | '/users'
+    | '/consultation/$queueId'
+    | '/queue/$queueId'
+    | '/consultation'
+    | '/queue'
   id:
     | '__root__'
     | '/'
     | '/appointments'
+    | '/consultation'
     | '/doctors'
     | '/login'
     | '/medicines'
@@ -133,17 +185,22 @@ export interface FileRouteTypes {
     | '/prescriptions'
     | '/queue'
     | '/users'
+    | '/consultation/$queueId'
+    | '/queue/$queueId'
+    | '/consultation/'
+    | '/queue/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppointmentsRoute: typeof AppointmentsRoute
+  ConsultationRoute: typeof ConsultationRouteWithChildren
   DoctorsRoute: typeof DoctorsRoute
   LoginRoute: typeof LoginRoute
   MedicinesRoute: typeof MedicinesRoute
   PatientsRoute: typeof PatientsRoute
   PrescriptionsRoute: typeof PrescriptionsRoute
-  QueueRoute: typeof QueueRoute
+  QueueRoute: typeof QueueRouteWithChildren
   UsersRoute: typeof UsersRoute
 }
 
@@ -198,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/consultation': {
+      id: '/consultation'
+      path: '/consultation'
+      fullPath: '/consultation'
+      preLoaderRoute: typeof ConsultationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/appointments': {
       id: '/appointments'
       path: '/appointments'
@@ -212,18 +276,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/queue/': {
+      id: '/queue/'
+      path: '/'
+      fullPath: '/queue/'
+      preLoaderRoute: typeof QueueIndexRouteImport
+      parentRoute: typeof QueueRoute
+    }
+    '/consultation/': {
+      id: '/consultation/'
+      path: '/'
+      fullPath: '/consultation/'
+      preLoaderRoute: typeof ConsultationIndexRouteImport
+      parentRoute: typeof ConsultationRoute
+    }
+    '/queue/$queueId': {
+      id: '/queue/$queueId'
+      path: '/$queueId'
+      fullPath: '/queue/$queueId'
+      preLoaderRoute: typeof QueueQueueIdRouteImport
+      parentRoute: typeof QueueRoute
+    }
+    '/consultation/$queueId': {
+      id: '/consultation/$queueId'
+      path: '/$queueId'
+      fullPath: '/consultation/$queueId'
+      preLoaderRoute: typeof ConsultationQueueIdRouteImport
+      parentRoute: typeof ConsultationRoute
+    }
   }
 }
+
+interface ConsultationRouteChildren {
+  ConsultationQueueIdRoute: typeof ConsultationQueueIdRoute
+  ConsultationIndexRoute: typeof ConsultationIndexRoute
+}
+
+const ConsultationRouteChildren: ConsultationRouteChildren = {
+  ConsultationQueueIdRoute: ConsultationQueueIdRoute,
+  ConsultationIndexRoute: ConsultationIndexRoute,
+}
+
+const ConsultationRouteWithChildren = ConsultationRoute._addFileChildren(
+  ConsultationRouteChildren,
+)
+
+interface QueueRouteChildren {
+  QueueQueueIdRoute: typeof QueueQueueIdRoute
+  QueueIndexRoute: typeof QueueIndexRoute
+}
+
+const QueueRouteChildren: QueueRouteChildren = {
+  QueueQueueIdRoute: QueueQueueIdRoute,
+  QueueIndexRoute: QueueIndexRoute,
+}
+
+const QueueRouteWithChildren = QueueRoute._addFileChildren(QueueRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppointmentsRoute: AppointmentsRoute,
+  ConsultationRoute: ConsultationRouteWithChildren,
   DoctorsRoute: DoctorsRoute,
   LoginRoute: LoginRoute,
   MedicinesRoute: MedicinesRoute,
   PatientsRoute: PatientsRoute,
   PrescriptionsRoute: PrescriptionsRoute,
-  QueueRoute: QueueRoute,
+  QueueRoute: QueueRouteWithChildren,
   UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport

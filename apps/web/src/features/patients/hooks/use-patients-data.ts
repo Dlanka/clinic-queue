@@ -1,23 +1,15 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui";
-import { DoctorService } from "@/services/doctor.service";
-import { MedicineService } from "@/services/medicine.service";
 import { PatientService, type Patient } from "@/services/patient.service";
-import { PrescriptionService, type PrescriptionItemInput } from "@/services/prescription.service";
+import { PrescriptionService } from "@/services/prescription.service";
 import { VisitService } from "@/services/visit.service";
 import type { PatientFormValues } from "../schemas/patient-form.schema";
-import type { VisitFormValues } from "../schemas/visit-form.schema";
-import { doctorsQueryKey, patientsQueryKey } from "../store/patients.store";
+import { patientsQueryKey } from "../store/patients.store";
 
 type SubmitPatientPayload = {
   patient: Patient | null;
   values: PatientFormValues;
-};
-
-type SubmitVisitPayload = {
-  patientId: string;
-  values: VisitFormValues;
 };
 
 type UsePatientsDataParams = {
@@ -37,16 +29,6 @@ export function usePatientsData({
     queryFn: PatientService.list
   });
 
-  const doctorsQuery = useQuery({
-    queryKey: doctorsQueryKey,
-    queryFn: DoctorService.list
-  });
-
-  const medicinesQuery = useQuery({
-    queryKey: ["medicines"],
-    queryFn: MedicineService.list
-  });
-
   const selectedPatientQuery = useQuery({
     queryKey: ["patient-detail", selectedPatientId],
     queryFn: () => PatientService.getById(String(selectedPatientId)),
@@ -57,6 +39,11 @@ export function usePatientsData({
     queryKey: ["patient-visits", selectedPatientId],
     queryFn: () => VisitService.listByPatient(String(selectedPatientId)),
     enabled: Boolean(selectedPatientId)
+  });
+
+  const prescriptionsQuery = useQuery({
+    queryKey: ["prescriptions"],
+    queryFn: () => PrescriptionService.list()
   });
 
   const createPatientMutation = useMutation({
@@ -96,48 +83,7 @@ export function usePatientsData({
     }
   });
 
-  const createVisitMutation = useMutation({
-    mutationFn: ({ patientId, payload }: { patientId: string; payload: VisitFormValues }) =>
-      VisitService.create(patientId, payload),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["patient-visits", selectedPatientId] });
-      toast.success("Visit recorded");
-    },
-    onError: (error: Error) => {
-      toast.error("Visit create failed", error.message);
-    }
-  });
-
-  const createPrescriptionMutation = useMutation({
-    mutationFn: ({ visitId, items }: { visitId: string; items: PrescriptionItemInput[] }) =>
-      PrescriptionService.createForVisit(visitId, items),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
-      toast.success("Prescription created");
-    },
-    onError: (error: Error) => {
-      toast.error("Prescription create failed", error.message);
-    }
-  });
-
   const rows = useMemo(() => patientsQuery.data ?? [], [patientsQuery.data]);
-  const doctorOptions = useMemo(
-    () =>
-      (doctorsQuery.data ?? []).map((doctor) => ({
-        value: doctor.id,
-        label: doctor.name
-      })),
-    [doctorsQuery.data]
-  );
-
-  const medicineOptions = useMemo(
-    () =>
-      (medicinesQuery.data ?? []).map((medicine) => ({
-        value: medicine.id,
-        label: `${medicine.name} (${medicine.stockQty})`
-      })),
-    [medicinesQuery.data]
-  );
 
   const submitPatient = ({ patient, values }: SubmitPatientPayload) => {
     const payload = {
@@ -154,36 +100,14 @@ export function usePatientsData({
     createPatientMutation.mutate(payload);
   };
 
-  const submitVisit = ({ patientId, values }: SubmitVisitPayload) => {
-    const payload = {
-      ...values,
-      visitedAt: values.visitedAt || undefined,
-      diagnosis: values.diagnosis || undefined,
-      notes: values.notes || undefined
-    };
-
-    createVisitMutation.mutate({ patientId, payload });
-  };
-
-  const submitPrescription = (visitId: string, items: PrescriptionItemInput[]) => {
-    createPrescriptionMutation.mutate({ visitId, items });
-  };
-
   return {
     rows,
-    doctorOptions,
-    medicineOptions,
     patientsQuery,
-    doctorsQuery,
-    medicinesQuery,
     selectedPatientQuery,
     visitsQuery,
-    createVisitMutation,
-    createPrescriptionMutation,
+    prescriptionsQuery,
     deletePatientMutation,
     isPatientSaving: createPatientMutation.isPending || updatePatientMutation.isPending,
-    submitPatient,
-    submitVisit,
-    submitPrescription
+    submitPatient
   };
 }

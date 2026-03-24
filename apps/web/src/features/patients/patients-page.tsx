@@ -1,93 +1,125 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PatientDetailCard,
   PatientFormModal,
-  PrescriptionBuilderModal,
   PatientsPageHeader,
   PatientsTableCard
 } from "./components";
 import { PatientsPageProvider, usePatientsPageContext } from "./context/patients-page.context";
 import { usePatientsData } from "./hooks";
 
-export function PatientsPage() {
+interface PatientsPageProps {
+  initialPatientId?: string;
+  consultationMode?: boolean;
+}
+
+export function PatientsPage({ initialPatientId, consultationMode = false }: PatientsPageProps = {}) {
   return (
     <PatientsPageProvider>
-      <PatientsPageContent />
+      <PatientsPageContent
+        initialPatientId={initialPatientId}
+        consultationMode={consultationMode}
+      />
     </PatientsPageProvider>
   );
 }
 
-function PatientsPageContent() {
+function PatientsPageContent({
+  initialPatientId,
+  consultationMode
+}: {
+  initialPatientId?: string;
+  consultationMode: boolean;
+}) {
   const {
     modalOpen,
     editingPatient,
     selectedPatientId,
-    prescriptionModalOpen,
-    prescriptionVisit,
     openCreateModal,
     openEditModal,
     closeModal,
-    openPrescriptionModal,
-    closePrescriptionModal,
     selectPatient
   } = usePatientsPageContext();
 
   const {
     rows,
     patientsQuery,
-    doctorsQuery,
-    medicineOptions,
     selectedPatientQuery,
     visitsQuery,
+    prescriptionsQuery,
     deletePatientMutation,
-    createVisitMutation,
-    createPrescriptionMutation,
     isPatientSaving,
-    submitPatient,
-    submitVisit,
-    submitPrescription
+    submitPatient
   } = usePatientsData({
     selectedPatientId,
     onPatientSettledSuccess: closeModal
   });
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const firstPatient = rows[0];
+    if (selectedPatientId) {
+      return;
+    }
 
-    if (!selectedPatientId && firstPatient) {
+    if (initialPatientId) {
+      const initialPatient = rows.find((row) => row.id === initialPatientId);
+      if (initialPatient) {
+        selectPatient(initialPatient.id);
+        return;
+      }
+    }
+
+    const firstPatient = rows[0];
+    if (firstPatient) {
       selectPatient(firstPatient.id);
     }
-  }, [rows, selectPatient, selectedPatientId]);
+  }, [initialPatientId, rows, selectPatient, selectedPatientId]);
+
+  const filteredRows = useMemo(() => {
+    const normalizedTerm = searchTerm.trim().toLowerCase();
+    if (!normalizedTerm) {
+      return rows;
+    }
+
+    return rows.filter(
+      (row) =>
+        row.fullName.toLowerCase().includes(normalizedTerm) ||
+        (row.phone ?? "").toLowerCase().includes(normalizedTerm)
+    );
+  }, [rows, searchTerm]);
 
   return (
     <div className="space-y-5">
-      <PatientsPageHeader onCreate={openCreateModal} />
+      <PatientsPageHeader
+        title={consultationMode ? "Consultation" : "Patients"}
+        subtitle={
+          consultationMode
+            ? "Record symptoms, diagnosis, visits, and prescriptions."
+            : "Manage patient registry and clinical visit history."
+        }
+        patientCount={rows.length}
+        hideCreateButton={consultationMode}
+        onCreate={openCreateModal}
+      />
 
-      <div className="grid gap-5 xl:grid-cols-[1.25fr_1fr]">
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <PatientsTableCard
-          rows={rows}
+          rows={filteredRows}
           isLoading={patientsQuery.isLoading}
-          isDeleting={deletePatientMutation.isPending}
           selectedPatientId={selectedPatientId}
+          searchTerm={searchTerm}
+          onSearch={setSearchTerm}
           onSelect={selectPatient}
-          onEdit={openEditModal}
-          onDeactivate={(patientId) => deletePatientMutation.mutate(patientId)}
         />
 
         <PatientDetailCard
           patient={selectedPatientQuery.data ?? null}
           visits={visitsQuery.data ?? []}
+          prescriptions={prescriptionsQuery.data ?? []}
           visitsLoading={visitsQuery.isLoading}
-          doctors={doctorsQuery.data ?? []}
-          visitSaving={createVisitMutation.isPending}
-          selectedPatientId={selectedPatientId}
-          onOpenPrescriptionBuilder={openPrescriptionModal}
-          onSubmitVisit={(values) => {
-            if (!selectedPatientId) {
-              return;
-            }
-            submitVisit({ patientId: selectedPatientId, values });
-          }}
+          onEdit={openEditModal}
+          onDeactivate={(patientId) => deletePatientMutation.mutate(patientId)}
+          isDeactivating={deletePatientMutation.isPending}
         />
       </div>
 
@@ -97,32 +129,6 @@ function PatientsPageContent() {
         loading={isPatientSaving}
         onClose={closeModal}
         onSubmit={(values) => submitPatient({ patient: editingPatient, values })}
-      />
-
-      <PrescriptionBuilderModal
-        open={prescriptionModalOpen}
-        visit={prescriptionVisit}
-        medicineOptions={medicineOptions}
-        loading={createPrescriptionMutation.isPending}
-        onClose={closePrescriptionModal}
-        onSubmit={(values) => {
-          if (!prescriptionVisit) {
-            return;
-          }
-
-          submitPrescription(
-            prescriptionVisit.id,
-            values.items.map((item) => ({
-              medicineId: item.medicineId,
-              quantity: item.quantity,
-              dosage: item.dosage || undefined,
-              frequency: item.frequency || undefined,
-              duration: item.duration || undefined,
-              instructions: item.instructions || undefined
-            }))
-          );
-          closePrescriptionModal();
-        }}
       />
     </div>
   );

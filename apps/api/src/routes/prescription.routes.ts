@@ -28,6 +28,8 @@ const createPrescriptionSchema = z.object({
     .min(1, "At least one medicine is required")
 });
 
+const updatePrescriptionSchema = createPrescriptionSchema;
+
 const prescriptionRouter = Router();
 
 prescriptionRouter.use(requireAuth);
@@ -51,6 +53,14 @@ prescriptionRouter.get(
   requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
   validateParams(prescriptionIdParamsSchema),
   PrescriptionController.getById
+);
+
+prescriptionRouter.patch(
+  "/prescriptions/:id",
+  requireRole("ADMIN", "DOCTOR"),
+  validateParams(prescriptionIdParamsSchema),
+  validateBody(updatePrescriptionSchema),
+  PrescriptionController.update
 );
 
 prescriptionRouter.patch(

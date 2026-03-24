@@ -29,6 +29,17 @@ export interface MemberDto {
   status: "ACTIVE" | "INVITED" | "DISABLED";
 }
 
+export interface MemberWithPasswordDto {
+  member: MemberDto;
+  temporaryPassword?: string;
+}
+
+function generateTemporaryPassword() {
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  const timestampPart = Date.now().toString(36).slice(-4);
+  return `Tmp!${randomPart}${timestampPart}`;
+}
+
 function normalizeRoles(roles: string[]) {
   const uniqueRoles = [...new Set(roles.map((role) => role.trim().toUpperCase()))];
 
@@ -122,14 +133,16 @@ export class MemberService {
       .filter((item): item is MemberDto => Boolean(item));
   }
 
-  static async create(input: CreateMemberInput) {
+  static async create(input: CreateMemberInput): Promise<MemberWithPasswordDto> {
     const email = input.email.toLowerCase().trim();
     const roles = normalizeRoles(input.roles);
 
     let account = await AccountModel.findOne({ email, status: "ACTIVE" });
 
+    let temporaryPassword: string | undefined;
+
     if (!account) {
-      const temporaryPassword = `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      temporaryPassword = generateTemporaryPassword();
       const passwordHash = await bcrypt.hash(temporaryPassword, 10);
 
       account = await AccountModel.create({
@@ -156,12 +169,14 @@ export class MemberService {
       status: input.isActive === false ? "DISABLED" : "ACTIVE"
     });
 
-    return buildMemberDtoByMembership({
+    const member = await buildMemberDtoByMembership({
       _id: membership._id,
       accountId: membership.accountId,
       roles: membership.roles,
       status: membership.status
     });
+
+    return { member, temporaryPassword };
   }
 
   static async getById(tenantId: string, memberId: string) {
@@ -213,5 +228,38 @@ export class MemberService {
     if (!deleted) {
       throw new HttpError(404, "Member not found");
     }
+  }
+
+  static async resetPassword(tenantId: string, memberId: string): Promise<MemberWithPasswordDto> {
+    if (!isValidObjectId(memberId)) {
+      throw new HttpError(400, "Invalid member id");
+    }
+
+    const membership = await TenantMemberModel.findOne({
+      _id: memberId,
+      tenantId
+    })
+      .select("_id accountId roles status")
+      .lean();
+
+    if (!membership) {
+      throw new HttpError(404, "Member not found");
+    }
+
+    const account = await AccountModel.findOne({
+      _id: membership.accountId,
+      status: "ACTIVE"
+    }).select("_id");
+
+    if (!account) {
+      throw new HttpError(404, "Account not found");
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+    account.passwordHash = await bcrypt.hash(temporaryPassword, 10);
+    await account.save();
+
+    const member = await buildMemberDtoByMembership(membership);
+    return { member, temporaryPassword };
   }
 }

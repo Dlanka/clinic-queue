@@ -3,6 +3,19 @@ import { MedicineService } from "../services/medicine.service";
 import { HttpError } from "../utils/http-error";
 
 export const MedicineController = {
+  listCategories: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const categories = await MedicineService.listCategories(req.auth.tenantId);
+      return res.status(200).json({ categories });
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
   list: (async (req, res, next) => {
     try {
       if (!req.auth) {
@@ -11,6 +24,19 @@ export const MedicineController = {
 
       const medicines = await MedicineService.list(req.auth.tenantId);
       return res.status(200).json({ medicines });
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  listUnits: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const units = await MedicineService.listUnits(req.auth.tenantId);
+      return res.status(200).json({ units });
     } catch (error) {
       return next(error);
     }

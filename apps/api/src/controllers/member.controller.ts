@@ -22,7 +22,7 @@ export const MemberController = {
         throw new HttpError(401, "Unauthenticated");
       }
 
-      const member = await MemberService.create({
+      const result = await MemberService.create({
         tenantId: req.auth.tenantId,
         email: req.body.email,
         name: req.body.name,
@@ -30,7 +30,7 @@ export const MemberController = {
         isActive: req.body.isActive
       });
 
-      return res.status(201).json({ member });
+      return res.status(201).json(result);
     } catch (error) {
       return next(error);
     }
@@ -76,6 +76,19 @@ export const MemberController = {
 
       await MemberService.remove(req.auth.tenantId, String(req.params.id));
       return res.status(204).send();
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  resetPassword: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await MemberService.resetPassword(req.auth.tenantId, String(req.params.id));
+      return res.status(200).json(result);
     } catch (error) {
       return next(error);
     }

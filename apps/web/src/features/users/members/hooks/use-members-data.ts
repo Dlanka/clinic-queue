@@ -29,9 +29,12 @@ export function useMembersData({ onSettledSuccess }: UseMembersDataParams) {
 
   const createMutation = useMutation({
     mutationFn: MemberService.create,
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: membersQueryKey });
       toast.success("Member created");
+      if (result.temporaryPassword) {
+        toast.success("Temporary password issued", result.temporaryPassword);
+      }
       onSettledSuccess();
     },
     onError: (error: Error) => {
@@ -63,8 +66,22 @@ export function useMembersData({ onSettledSuccess }: UseMembersDataParams) {
     }
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: MemberService.resetPassword,
+    onSuccess: (result) => {
+      toast.success("Password reset");
+      if (result.temporaryPassword) {
+        toast.success("Temporary password", result.temporaryPassword);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error("Reset failed", error.message);
+    }
+  });
+
   const rows = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
-  const isBusy = createMutation.isPending || updateMutation.isPending;
+  const isBusy =
+    createMutation.isPending || updateMutation.isPending || resetPasswordMutation.isPending;
 
   const submitMember = ({ member, values }: SubmitPayload) => {
     if (member) {
@@ -90,6 +107,7 @@ export function useMembersData({ onSettledSuccess }: UseMembersDataParams) {
     isBusy,
     membersQuery,
     deleteMutation,
+    resetPasswordMutation,
     submitMember
   };
 }

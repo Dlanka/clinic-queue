@@ -10,6 +10,11 @@ export interface Member {
   status: "ACTIVE" | "INVITED" | "DISABLED";
 }
 
+export interface MemberWithPassword {
+  member: Member;
+  temporaryPassword?: string;
+}
+
 export interface CreateMemberPayload {
   email: string;
   name?: string;
@@ -34,8 +39,8 @@ export class MemberService {
   }
 
   static async create(payload: CreateMemberPayload) {
-    const { data } = await http.post<{ member: Member }>("/members", payload);
-    return data.member;
+    const { data } = await http.post<MemberWithPassword>("/members", payload);
+    return data;
   }
 
   static async update(id: string, payload: UpdateMemberPayload) {
@@ -45,5 +50,10 @@ export class MemberService {
 
   static async remove(id: string) {
     await http.delete(`/members/${id}`);
+  }
+
+  static async resetPassword(id: string) {
+    const { data } = await http.post<MemberWithPassword>(`/members/${id}/reset-password`);
+    return data;
   }
 }

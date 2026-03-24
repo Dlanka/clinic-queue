@@ -15,6 +15,11 @@ export interface Medicine {
   createdAt: string;
 }
 
+export interface MedicineCategoryOption {
+  value: string;
+  label: string;
+}
+
 export interface CreateMedicinePayload {
   name: string;
   category?: string;
@@ -36,6 +41,16 @@ export interface UpdateMedicinePayload {
 }
 
 export class MedicineService {
+  static async listCategories() {
+    const { data } = await http.get<{ categories: MedicineCategoryOption[] }>("/medicines/categories");
+    return data.categories;
+  }
+
+  static async listUnits() {
+    const { data } = await http.get<{ units: MedicineCategoryOption[] }>("/medicines/units");
+    return data.units;
+  }
+
   static async list() {
     const { data } = await http.get<{ medicines: Medicine[] }>("/medicines");
     return data.medicines;

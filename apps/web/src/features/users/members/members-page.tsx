@@ -13,9 +13,10 @@ export function MembersPage() {
 function MembersPageContent() {
   const { modalOpen, editingMember, openCreateModal, openEditModal, closeModal } =
     useMembersPageContext();
-  const { rows, isBusy, membersQuery, deleteMutation, submitMember } = useMembersData({
-    onSettledSuccess: closeModal
-  });
+  const { rows, isBusy, membersQuery, deleteMutation, resetPasswordMutation, submitMember } =
+    useMembersData({
+      onSettledSuccess: closeModal
+    });
 
   return (
     <div className="space-y-5">
@@ -25,8 +26,10 @@ function MembersPageContent() {
         rows={rows}
         isLoading={membersQuery.isLoading}
         isDeleting={deleteMutation.isPending}
+        isResetting={resetPasswordMutation.isPending}
         onEdit={openEditModal}
         onDelete={(memberId) => deleteMutation.mutate(memberId)}
+        onResetPassword={(memberId) => resetPasswordMutation.mutate(memberId)}
       />
 
       <MemberFormModal

@@ -42,6 +42,16 @@ medicineRouter.get(
   requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
   MedicineController.list
 );
+medicineRouter.get(
+  "/categories",
+  requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
+  MedicineController.listCategories
+);
+medicineRouter.get(
+  "/units",
+  requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
+  MedicineController.listUnits
+);
 medicineRouter.post(
   "/",
   requireRole("ADMIN", "PHARMACY_STAFF"),
@@ -49,20 +59,20 @@ medicineRouter.post(
   MedicineController.create
 );
 medicineRouter.get(
-  "/:id",
+  "/:id([a-fA-F0-9]{24})",
   requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
   validateParams(medicineIdParamsSchema),
   MedicineController.getById
 );
 medicineRouter.patch(
-  "/:id",
+  "/:id([a-fA-F0-9]{24})",
   requireRole("ADMIN", "PHARMACY_STAFF"),
   validateParams(medicineIdParamsSchema),
   validateBody(updateMedicineSchema),
   MedicineController.update
 );
 medicineRouter.delete(
-  "/:id",
+  "/:id([a-fA-F0-9]{24})",
   requireRole("ADMIN", "PHARMACY_STAFF"),
   validateParams(medicineIdParamsSchema),
   MedicineController.remove

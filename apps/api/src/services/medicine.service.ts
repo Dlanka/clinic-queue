@@ -25,6 +25,11 @@ interface UpdateMedicineInput {
   status?: MedicineStatus;
 }
 
+export interface MedicineCategoryOptionDto {
+  value: string;
+  label: string;
+}
+
 export interface MedicineDto {
   id: string;
   name: string;
@@ -41,6 +46,36 @@ export interface MedicineDto {
 function normalizeString(value?: string) {
   return value?.trim() || undefined;
 }
+
+const DEFAULT_MEDICINE_CATEGORIES = [
+  "Antibiotics",
+  "Analgesics",
+  "Antipyretics",
+  "Antihistamines",
+  "Vitamins",
+  "Supplements",
+  "Cardiovascular",
+  "Diabetes",
+  "Dermatology",
+  "Gastroenterology"
+];
+
+const DEFAULT_MEDICINE_UNITS = [
+  "tablet",
+  "capsule",
+  "bottle",
+  "vial",
+  "ampoule",
+  "syrup",
+  "suspension",
+  "cream",
+  "ointment",
+  "inhaler",
+  "drop",
+  "patch",
+  "injection",
+  "unit"
+];
 
 function toMedicineDto(medicine: {
   _id: { toString: () => string };
@@ -68,6 +103,46 @@ function toMedicineDto(medicine: {
 }
 
 export class MedicineService {
+  static async listCategories(tenantId: string): Promise<MedicineCategoryOptionDto[]> {
+    const tenantCategories = await MedicineModel.distinct("category", {
+      tenantId,
+      category: { $exists: true, $ne: "" }
+    });
+
+    const uniqueCategories = Array.from(
+      new Set(
+        [...DEFAULT_MEDICINE_CATEGORIES, ...tenantCategories]
+          .map((category) => category?.trim())
+          .filter((category): category is string => Boolean(category))
+      )
+    ).sort((a, b) => a.localeCompare(b));
+
+    return uniqueCategories.map((category) => ({
+      value: category,
+      label: category
+    }));
+  }
+
+  static async listUnits(tenantId: string): Promise<MedicineCategoryOptionDto[]> {
+    const tenantUnits = await MedicineModel.distinct("unit", {
+      tenantId,
+      unit: { $exists: true, $ne: "" }
+    });
+
+    const uniqueUnits = Array.from(
+      new Set(
+        [...DEFAULT_MEDICINE_UNITS, ...tenantUnits]
+          .map((unit) => unit?.trim())
+          .filter((unit): unit is string => Boolean(unit))
+      )
+    ).sort((a, b) => a.localeCompare(b));
+
+    return uniqueUnits.map((unit) => ({
+      value: unit,
+      label: unit
+    }));
+  }
+
   static async list(tenantId: string) {
     const medicines = await MedicineModel.find({ tenantId }).sort({ createdAt: -1 }).lean();
     return medicines.map((medicine) => toMedicineDto(medicine));

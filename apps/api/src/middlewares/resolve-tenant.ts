@@ -6,6 +6,7 @@ import { HttpError } from "../utils/http-error";
 const TENANT_OPTIONAL_PATHS = new Set([
   "/health",
   "/auth/login",
+  "/auth/select-tenant",
   "/auth/refresh",
   "/auth/logout",
   "/auth/me"

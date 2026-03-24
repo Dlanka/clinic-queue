@@ -6,16 +6,16 @@ import { prescriptionsQueryKey } from "../store/prescriptions.store";
 
 type UsePrescriptionsDataParams = {
   selectedStatus: "ALL" | "PRESCRIBED" | "DISPENSED";
+  searchTerm: string;
 };
 
-export function usePrescriptionsData({ selectedStatus }: UsePrescriptionsDataParams) {
+export function usePrescriptionsData({ selectedStatus, searchTerm }: UsePrescriptionsDataParams) {
   const toast = useToast();
   const queryClient = useQueryClient();
 
   const prescriptionsQuery = useQuery({
-    queryKey: [...prescriptionsQueryKey, selectedStatus],
-    queryFn: () =>
-      PrescriptionService.list(selectedStatus === "ALL" ? undefined : selectedStatus)
+    queryKey: prescriptionsQueryKey,
+    queryFn: () => PrescriptionService.list()
   });
 
   const dispenseMutation = useMutation({
@@ -29,10 +29,43 @@ export function usePrescriptionsData({ selectedStatus }: UsePrescriptionsDataPar
     }
   });
 
-  const rows = useMemo(() => prescriptionsQuery.data ?? [], [prescriptionsQuery.data]);
+  const allRows = useMemo(() => prescriptionsQuery.data ?? [], [prescriptionsQuery.data]);
+  const normalizedTerm = searchTerm.trim().toLowerCase();
+
+  const rows = useMemo(
+    () =>
+      allRows.filter((row) => {
+        if (selectedStatus !== "ALL" && row.status !== selectedStatus) {
+          return false;
+        }
+
+        if (!normalizedTerm) {
+          return true;
+        }
+
+        return (
+          row.patientName.toLowerCase().includes(normalizedTerm) ||
+          row.doctorName.toLowerCase().includes(normalizedTerm) ||
+          row.id.toLowerCase().includes(normalizedTerm)
+        );
+      }),
+    [allRows, normalizedTerm, selectedStatus]
+  );
+
+  const counts = useMemo(
+    () => ({
+      all: allRows.length,
+      prescribed: allRows.filter((row) => row.status === "PRESCRIBED").length,
+      dispensed: allRows.filter((row) => row.status === "DISPENSED").length,
+      items: allRows.reduce((total, row) => total + row.items.length, 0)
+    }),
+    [allRows]
+  );
 
   return {
+    allRows,
     rows,
+    counts,
     prescriptionsQuery,
     dispenseMutation
   };

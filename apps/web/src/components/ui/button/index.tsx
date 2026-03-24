@@ -9,16 +9,19 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
     startIconName?: IconName;
     endIconName?: IconName;
     iconSize?: number;
+    preventAnimation?: boolean;
   };
 
 export function Button({
   intent,
+  variant,
   size,
   className,
   type = "button",
   startIconName,
   endIconName,
   iconSize = 16,
+  preventAnimation = false,
   children,
   ...props
 }: ButtonProps) {
@@ -26,7 +29,17 @@ export function Button({
   const EndIcon = endIconName ? iconMap[endIconName] : null;
 
   return (
-    <button type={type} className={cn(buttonStyles({ intent, size }), className)} {...props}>
+    <button
+      type={type}
+      className={cn(
+        buttonStyles({ intent, variant, size }),
+        preventAnimation
+          ? "transition-none hover:translate-y-0 hover:brightness-100 active:translate-y-0"
+          : null,
+        className
+      )}
+      {...props}
+    >
       {StartIcon ? <StartIcon size={iconSize} aria-hidden /> : null}
       {children}
       {EndIcon ? <EndIcon size={iconSize} aria-hidden /> : null}

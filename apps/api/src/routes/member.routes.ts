@@ -39,6 +39,7 @@ memberRouter.patch(
   validateBody(updateMemberSchema),
   MemberController.update
 );
+memberRouter.post("/:id/reset-password", validateParams(memberIdParamsSchema), MemberController.resetPassword);
 memberRouter.delete("/:id", validateParams(memberIdParamsSchema), MemberController.remove);
 
 export { memberRouter };

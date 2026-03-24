@@ -25,6 +25,13 @@ interface CreatePrescriptionInput {
   items: PrescriptionItemInput[];
 }
 
+interface UpdatePrescriptionInput {
+  tenantId: string;
+  prescriptionId: string;
+  prescribedByMemberId: string;
+  items: PrescriptionItemInput[];
+}
+
 export interface PrescriptionItemDto {
   medicineId: string;
   medicineName: string;
@@ -39,6 +46,7 @@ export interface PrescriptionItemDto {
 export interface PrescriptionDto {
   id: string;
   visitId: string;
+  queueEntryId?: string;
   patientId: string;
   patientName: string;
   doctorId: string;
@@ -115,6 +123,9 @@ async function decoratePrescription(
       .select("name")
       .lean()
   ]);
+  const visit = await VisitModel.findOne({ _id: prescription.visitId, tenantId })
+    .select("queueEntryId")
+    .lean();
 
   const patientName = patient ? `${patient.firstName} ${patient.lastName}`.trim() : "Unknown Patient";
   const doctorName = doctor?.name ?? "Unknown Doctor";
@@ -122,6 +133,7 @@ async function decoratePrescription(
   return {
     id: prescription._id.toString(),
     visitId: prescription.visitId.toString(),
+    queueEntryId: visit?.queueEntryId?.toString(),
     patientId: prescription.patientId.toString(),
     patientName,
     doctorId: prescription.doctorId.toString(),
@@ -136,8 +148,23 @@ async function decoratePrescription(
 }
 
 export class PrescriptionService {
-  static async list(tenantId: string, status?: PrescriptionStatus) {
-    const filter = status ? { tenantId, status } : { tenantId };
+  static async list(tenantId: string, status?: PrescriptionStatus, visitId?: string) {
+    if (visitId && !isValidObjectId(visitId)) {
+      throw new HttpError(400, "Invalid visit id");
+    }
+
+    const filter: {
+      tenantId: string;
+      status?: PrescriptionStatus;
+      visitId?: string;
+    } = { tenantId };
+    if (status) {
+      filter.status = status;
+    }
+    if (visitId) {
+      filter.visitId = visitId;
+    }
+
     const prescriptions = await PrescriptionModel.find(filter).sort({ createdAt: -1 }).lean();
 
     const result: PrescriptionDto[] = [];
@@ -228,6 +255,68 @@ export class PrescriptionService {
     }
 
     return decoratePrescription(tenantId, prescription);
+  }
+
+  static async update(input: UpdatePrescriptionInput) {
+    if (!isValidObjectId(input.prescriptionId)) {
+      throw new HttpError(400, "Invalid prescription id");
+    }
+
+    const prescription = await PrescriptionModel.findOne({
+      _id: input.prescriptionId,
+      tenantId: input.tenantId
+    });
+
+    if (!prescription) {
+      throw new HttpError(404, "Prescription not found");
+    }
+
+    if (prescription.status === "DISPENSED") {
+      throw new HttpError(409, "Dispensed prescription cannot be modified");
+    }
+
+    const medicineIds = [...new Set(input.items.map((item) => item.medicineId))];
+    for (const medicineId of medicineIds) {
+      if (!isValidObjectId(medicineId)) {
+        throw new HttpError(400, "Invalid medicine id");
+      }
+    }
+
+    const medicines = await MedicineModel.find({
+      _id: { $in: medicineIds },
+      tenantId: input.tenantId,
+      status: "ACTIVE"
+    })
+      .select("_id name")
+      .lean();
+
+    if (medicines.length !== medicineIds.length) {
+      throw new HttpError(400, "Some medicines are invalid or inactive");
+    }
+
+    const medicineById = new Map(medicines.map((medicine) => [medicine._id.toString(), medicine]));
+
+    prescription.prescribedByMemberId = input.prescribedByMemberId as never;
+    prescription.items = input.items.map((item) => {
+      const medicine = medicineById.get(item.medicineId);
+      if (!medicine) {
+        throw new HttpError(400, "Medicine not found");
+      }
+
+      return {
+        medicineId: medicine._id,
+        medicineName: medicine.name,
+        quantity: item.quantity,
+        dispensedQty: 0,
+        dosage: normalizeString(item.dosage),
+        frequency: normalizeString(item.frequency),
+        duration: normalizeString(item.duration),
+        instructions: normalizeString(item.instructions)
+      };
+    }) as never;
+
+    await prescription.save();
+    return decoratePrescription(input.tenantId, prescription.toObject());
   }
 
   static async dispense(tenantId: string, prescriptionId: string, dispensedByMemberId: string) {

@@ -80,6 +80,8 @@ const baseStyles: StylesConfig<SelectOption, boolean> = {
   })
 };
 
+export const selectBaseStyles = baseStyles;
+
 export function Select<IsMulti extends boolean = false>({
   inputId,
   styles,
@@ -88,7 +90,7 @@ export function Select<IsMulti extends boolean = false>({
   return (
     <ReactSelect<SelectOption, IsMulti, GroupBase<SelectOption>>
       inputId={inputId}
-      styles={{ ...baseStyles, ...styles }}
+      styles={{ ...selectBaseStyles, ...styles }}
       {...props}
     />
   );

@@ -1,19 +1,36 @@
-import { Button } from "@/components/ui";
+import { format } from "date-fns";
+import { Button, PageHeader } from "@/components/ui";
 
 type PatientsPageHeaderProps = {
+  title?: string;
+  subtitle?: string;
+  createLabel?: string;
+  hideCreateButton?: boolean;
+  patientCount?: number;
   onCreate: () => void;
 };
 
-export function PatientsPageHeader({ onCreate }: PatientsPageHeaderProps) {
+export function PatientsPageHeader({
+  title = "Patients",
+  subtitle = "Manage patient registry and clinical visit history.",
+  createLabel = "New Patient",
+  hideCreateButton = false,
+  patientCount = 0,
+  onCreate
+}: PatientsPageHeaderProps) {
   return (
-    <section className="flex items-center justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-extrabold text-neutral-95">Patients</h1>
-        <p className="text-sm text-neutral-80">Manage patient registry and clinical visit history.</p>
-      </div>
-      <Button startIconName="plus" onClick={onCreate}>
-        New Patient
-      </Button>
-    </section>
+    <PageHeader
+      title={title}
+      subtitle={`${subtitle} · ${patientCount} patient${patientCount === 1 ? "" : "s"} · ${format(new Date(), "MMM d, yyyy")}`}
+      iconName="user"
+      iconClassName="bg-primary-soft text-primary"
+      action={
+        hideCreateButton ? null : (
+          <Button startIconName="plus" onClick={onCreate}>
+            {createLabel}
+          </Button>
+        )
+      }
+    />
   );
 }

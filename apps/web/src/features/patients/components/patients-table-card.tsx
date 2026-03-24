@@ -1,102 +1,116 @@
 import { format } from "date-fns";
-import { Badge, Button, Card, Table } from "@/components/ui";
+import { Badge, Card, Input } from "@/components/ui";
+import { cn } from "@/lib/cn";
 import type { Patient } from "@/services/patient.service";
 
 type PatientsTableCardProps = {
   rows: Patient[];
   isLoading: boolean;
-  isDeleting: boolean;
   selectedPatientId: string | null;
+  searchTerm: string;
+  onSearch: (value: string) => void;
   onSelect: (patientId: string) => void;
-  onEdit: (patient: Patient) => void;
-  onDeactivate: (patientId: string) => void;
 };
+
+function initialsFromName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "NA";
+  }
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function genderLabel(value?: Patient["gender"]) {
+  if (!value) {
+    return "N/A";
+  }
+  return value.charAt(0) + value.slice(1).toLowerCase();
+}
 
 export function PatientsTableCard({
   rows,
   isLoading,
-  isDeleting,
   selectedPatientId,
-  onSelect,
-  onEdit,
-  onDeactivate
+  searchTerm,
+  onSearch,
+  onSelect
 }: PatientsTableCardProps) {
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <Card.Header
-        title="Patients"
+        title="Patient Registry"
         subtitle={`${rows.length} patient${rows.length === 1 ? "" : "s"}`}
         iconName="user"
         iconClassName="bg-tertiary-soft text-tertiary"
+        className="border-b border-subtle"
       />
-      <Card.Body className="p-0">
-        <div className="-mt-px pb-6">
-          <Table
-            columns={[
-              {
-                key: "name",
-                header: "Name",
-                render: (row) => (
-                  <div>
-                    <p className="font-semibold text-neutral-95">{row.fullName}</p>
-                    <p className="text-xs text-neutral-80">{row.phone || "No phone"}</p>
-                  </div>
-                )
-              },
-              {
-                key: "gender",
-                header: "Gender",
-                render: (row) => <span className="text-neutral-90">{row.gender ?? "N/A"}</span>
-              },
-              {
-                key: "dob",
-                header: "DOB",
-                render: (row) => (
-                  <span className="text-neutral-90">
-                    {row.dateOfBirth ? format(new Date(row.dateOfBirth), "MMM d, yyyy") : "N/A"}
-                  </span>
-                )
-              },
-              {
-                key: "status",
-                header: "Status",
-                render: (row) => (
-                  <Badge tone={row.status === "ACTIVE" ? "success" : "danger"}>{row.status}</Badge>
-                )
-              },
-              {
-                key: "actions",
-                header: "Actions",
-                render: (row) => (
-                  <div className="flex gap-2">
-                    <Button
-                      intent={selectedPatientId === row.id ? "secondary" : "ghost"}
-                      size="sm"
-                      className="!px-2"
-                      onClick={() => onSelect(row.id)}
-                    >
-                      View
-                    </Button>
-                    <Button intent="ghost" size="sm" className="!px-2" onClick={() => onEdit(row)}>
-                      Edit
-                    </Button>
-                    <Button
-                      intent="ghost"
-                      size="sm"
-                      className="!px-2 text-danger hover:bg-danger-soft"
-                      onClick={() => onDeactivate(row.id)}
-                      disabled={isDeleting}
-                    >
-                      Deactivate
-                    </Button>
-                  </div>
-                )
-              }
-            ]}
-            rows={rows}
-            getRowId={(row) => row.id}
-            emptyMessage={isLoading ? "Loading patients..." : "No patients found."}
+      <Card.Body className="space-y-3 p-0">
+        <div className="px-4 pt-3">
+          <Input
+            value={searchTerm}
+            onChange={(event) => onSearch(event.target.value)}
+            placeholder="Search by name or phone..."
+            rounded="full"
+            size="sm"
+            startIconName="search"
           />
+        </div>
+
+        <div className="scrollbar-thin-minimal max-h-[60vh] space-y-0.5 overflow-y-auto border-t border-subtle">
+          {isLoading ? (
+            <p className="px-4 py-4 text-sm text-neutral-70">Loading patients...</p>
+          ) : rows.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-neutral-70">No patients found.</p>
+          ) : (
+            rows.map((patient) => {
+              const selected = selectedPatientId === patient.id;
+
+              return (
+                <button
+                  key={patient.id}
+                  type="button"
+                  className={cn(
+                    "flex w-full items-center gap-3 border-b border-subtle px-4 py-3 text-left transition-colors",
+                    selected
+                      ? "border-l-2 border-l-primary bg-primary-soft/20"
+                      : "hover:bg-neutral-30/70"
+                  )}
+                  onClick={() => onSelect(patient.id)}
+                >
+                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft font-bold text-primary">
+                    {initialsFromName(patient.fullName)}
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base font-semibold text-neutral-95">
+                      {patient.fullName}
+                    </span>
+                    <span className="block truncate text-xs text-neutral-70">
+                      {genderLabel(patient.gender)} ·{" "}
+                      {patient.dateOfBirth
+                        ? format(new Date(patient.dateOfBirth), "MMM d, yyyy")
+                        : "No DOB"}{" "}
+                      · {patient.phone || "No phone"}
+                    </span>
+                  </span>
+
+                  <Badge tone={patient.status === "ACTIVE" ? "success" : "danger"} size="sm">
+                    {patient.status === "ACTIVE" ? "Active" : "Inactive"}
+                  </Badge>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        <div className="border-t border-subtle px-4 py-3">
+          <p className="text-xs text-neutral-70">
+            {rows.length} patient{rows.length === 1 ? "" : "s"} ·{" "}
+            {rows.every((row) => row.status === "ACTIVE") ? "All active" : "Mixed status"}
+          </p>
         </div>
       </Card.Body>
     </Card>

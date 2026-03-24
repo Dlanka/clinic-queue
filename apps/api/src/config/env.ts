@@ -10,7 +10,9 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
   JWT_REFRESH_TTL: z.string().default("7d"),
   JWT_LOGIN_TTL: z.string().default("5m"),
-  COOKIE_SAME_SITE: z.enum(["lax", "none"]).default("lax")
+  COOKIE_SAME_SITE: z.enum(["lax", "none"]).default("lax"),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120)
 });
 
 const parsed = envSchema.safeParse(process.env);

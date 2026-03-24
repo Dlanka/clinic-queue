@@ -5,16 +5,20 @@ type MembersTableCardProps = {
   rows: Member[];
   isLoading: boolean;
   isDeleting: boolean;
+  isResetting: boolean;
   onEdit: (member: Member) => void;
   onDelete: (memberId: string) => void;
+  onResetPassword: (memberId: string) => void;
 };
 
 export function MembersTableCard({
   rows,
   isLoading,
   isDeleting,
+  isResetting,
   onEdit,
-  onDelete
+  onDelete,
+  onResetPassword
 }: MembersTableCardProps) {
   return (
     <Card>
@@ -69,6 +73,15 @@ export function MembersTableCard({
                     <Button
                       intent="ghost"
                       size="sm"
+                      className="!px-2 text-warning hover:bg-warning-soft"
+                      onClick={() => onResetPassword(row.id)}
+                      disabled={isResetting}
+                    >
+                      Reset Password
+                    </Button>
+                    <Button
+                      intent="ghost"
+                      size="sm"
                       className="!px-2 text-danger hover:bg-danger-soft"
                       onClick={() => onDelete(row.id)}
                       disabled={isDeleting}
@@ -88,3 +101,4 @@ export function MembersTableCard({
     </Card>
   );
 }
+

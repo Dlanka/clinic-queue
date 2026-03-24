@@ -26,10 +26,10 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
   const renderNavContent = (onItemClick?: () => void) =>
     navGroups.map((group, groupIndex) => (
       <div key={group.label}>
-        <p className="px-2 pb-1.5 pt-3 text-2xs font-bold uppercase tracking-[0.14em] text-neutral-70">
+        <p className="sidebar-group-label px-2 pb-1.5 pt-3 text-3xs font-bold uppercase tracking-[0.14em] text-neutral-70">
           {group.label}
         </p>
-        <nav className="space-y-1">
+        <nav className="sidebar-nav-list flex flex-col gap-1.5">
           {group.items.map((item) => {
             const Icon = item.icon;
             const isActive = isItemActive(item.to);
@@ -39,16 +39,17 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
                 key={item.label}
                 to={item.to}
                 onClick={onItemClick}
-                className={`relative flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-semibold transition-all ${
+                data-tip={item.label}
+                className={`nav-item relative flex h-10 w-full items-center gap-3 rounded-md px-3.5 text-sm font-semibold transition-all ${
                   isActive
-                    ? "bg-primary-soft text-primary before:absolute before:bottom-[25%] before:left-0 before:top-[25%] before:w-0.5 before:rounded before:bg-primary before:shadow-[0_0_8px_var(--color-primary)]"
+                    ? "bg-primary-soft text-primary before:absolute before:bottom-[25%] before:left-0 before:top-[25%] before:w-0.5 before:rounded-full before:bg-primary before:shadow-[0_0_8px_var(--color-primary)]"
                     : "text-neutral-90 hover:bg-neutral-40 hover:text-neutral-100"
                 }`}
               >
-                <Icon size={16} />
-                {item.label}
+                <Icon size={18} className="nav-item-icon shrink-0" />
+                <span className="nav-item-label">{item.label}</span>
                 {item.badge ? (
-                  <span className="ml-auto rounded-full bg-primary px-2 h-4 text-2xs font-extrabold text-neutral-0">
+                  <span className="nav-item-badge h-4 rounded-full bg-primary px-2 text-2xs font-extrabold text-neutral-0">
                     {item.badge}
                   </span>
                 ) : null}
@@ -57,7 +58,7 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
           })}
         </nav>
         {groupIndex < navGroups.length - 1 ? (
-          <div className="my-3 h-px bg-neutral-variant-80/60" />
+          <div className="sidebar-group-divider my-3 h-px bg-neutral-variant-80/60" />
         ) : null}
       </div>
     ));
@@ -65,7 +66,7 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
   return (
     <>
       <motion.aside
-        className="fixed bottom-0 left-0 top-toolbar z-20 hidden w-sidebar overflow-y-auto bg-neutral-20 p-3 md:block"
+        className="sidebar fixed bottom-0 left-0 top-toolbar hidden overflow-y-auto bg-neutral-20 px-3 py-2 md:block"
         initial={{ opacity: 0, x: -12 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.24 }}

@@ -1,0 +1,71 @@
+export const PRESCRIPTION_DOSAGE_OPTIONS = [
+  { value: "1/4 tablet", label: "1/4 tablet" },
+  { value: "1/2 tablet", label: "1/2 tablet" },
+  { value: "3/4 tablet", label: "3/4 tablet" },
+  { value: "1 tablet", label: "1 tablet" },
+  { value: "1.5 tablets", label: "1.5 tablets" },
+  { value: "2 tablets", label: "2 tablets" },
+  { value: "3 tablets", label: "3 tablets" },
+  { value: "1 capsule", label: "1 capsule" },
+  { value: "2 capsules", label: "2 capsules" },
+  { value: "5 ml", label: "5 ml" },
+  { value: "7.5 ml", label: "7.5 ml" },
+  { value: "10 ml", label: "10 ml" },
+  { value: "15 ml", label: "15 ml" },
+  { value: "1 teaspoon (5 ml)", label: "1 teaspoon (5 ml)" },
+  { value: "2 teaspoons (10 ml)", label: "2 teaspoons (10 ml)" },
+  { value: "1 tablespoon (15 ml)", label: "1 tablespoon (15 ml)" },
+  { value: "1 puff", label: "1 puff" },
+  { value: "2 puffs", label: "2 puffs" },
+  { value: "1 spray", label: "1 spray" },
+  { value: "2 sprays", label: "2 sprays" },
+  { value: "1 drop", label: "1 drop" },
+  { value: "2 drops", label: "2 drops" },
+  { value: "3 drops", label: "3 drops" },
+  { value: "Apply thin layer", label: "Apply thin layer" },
+  { value: "Apply generously", label: "Apply generously" },
+  { value: "Apply small amount", label: "Apply small amount" },
+  { value: "1 sachet", label: "1 sachet" },
+  { value: "2 sachets", label: "2 sachets" },
+  { value: "1 lozenge", label: "1 lozenge" },
+  { value: "1 patch", label: "1 patch" },
+  { value: "1 suppository", label: "1 suppository" },
+  { value: "1 ampoule", label: "1 ampoule" },
+  { value: "0.5 ml injection", label: "0.5 ml injection" },
+  { value: "1 ml injection", label: "1 ml injection" },
+  { value: "2 ml injection", label: "2 ml injection" }
+];
+
+export const PRESCRIPTION_FREQUENCY_OPTIONS = [
+  { value: "Once daily (OD)", label: "Once daily (OD)" },
+  { value: "Twice daily (BD)", label: "Twice daily (BD)" },
+  { value: "Three times daily (TDS)", label: "Three times daily (TDS)" },
+  { value: "Four times daily (QID)", label: "Four times daily (QID)" },
+  { value: "Every morning", label: "Every morning" },
+  { value: "Every evening", label: "Every evening" },
+  { value: "At night", label: "At night" },
+  { value: "Alternate days", label: "Alternate days" },
+  { value: "Every 4 hours", label: "Every 4 hours" },
+  { value: "Every 6 hours", label: "Every 6 hours" },
+  { value: "Every 8 hours", label: "Every 8 hours" },
+  { value: "Every 12 hours", label: "Every 12 hours" },
+  { value: "Every 24 hours", label: "Every 24 hours" },
+  { value: "Before meals", label: "Before meals" },
+  { value: "After meals", label: "After meals" },
+  { value: "With meals", label: "With meals" },
+  { value: "On empty stomach", label: "On empty stomach" },
+  { value: "At bedtime", label: "At bedtime" },
+  { value: "Weekly", label: "Weekly" },
+  { value: "Twice weekly", label: "Twice weekly" },
+  { value: "Monthly", label: "Monthly" },
+  { value: "As needed (SOS)", label: "As needed (SOS)" },
+  { value: "When required for pain", label: "When required for pain" },
+  { value: "When required for fever", label: "When required for fever" }
+];
+
+export const PRESCRIPTION_DURATION_OPTIONS = [
+  1, 2, 3, 4, 5, 6, 7, 10, 14, 21, 28, 30, 42, 56, 60, 84, 90, 120, 180, 365
+].map((days) => ({
+  value: String(days),
+  label: `${days} day${days > 1 ? "s" : ""}`
+}));

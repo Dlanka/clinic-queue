@@ -25,6 +25,7 @@ export interface PrescriptionItem {
 export interface Prescription {
   id: string;
   visitId: string;
+  queueEntryId?: string;
   patientId: string;
   patientName: string;
   doctorId: string;
@@ -38,9 +39,12 @@ export interface Prescription {
 }
 
 export class PrescriptionService {
-  static async list(status?: PrescriptionStatus) {
+  static async list(status?: PrescriptionStatus, visitId?: string) {
     const { data } = await http.get<{ prescriptions: Prescription[] }>("/prescriptions", {
-      params: status ? { status } : undefined
+      params: {
+        ...(status ? { status } : {}),
+        ...(visitId ? { visitId } : {})
+      }
     });
     return data.prescriptions;
   }
@@ -52,6 +56,13 @@ export class PrescriptionService {
 
   static async createForVisit(visitId: string, items: PrescriptionItemInput[]) {
     const { data } = await http.post<{ prescription: Prescription }>(`/visits/${visitId}/prescriptions`, {
+      items
+    });
+    return data.prescription;
+  }
+
+  static async update(id: string, items: PrescriptionItemInput[]) {
+    const { data } = await http.patch<{ prescription: Prescription }>(`/prescriptions/${id}`, {
       items
     });
     return data.prescription;

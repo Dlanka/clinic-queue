@@ -16,6 +16,10 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
   try {
     const payload = verifyAccessToken(token);
 
+    if (req.tenantId && req.tenantId !== payload.tenantId) {
+      return next(new HttpError(403, "Tenant header does not match session tenant"));
+    }
+
     const [account, membership, tenant] = await Promise.all([
       AccountModel.findOne({ _id: payload.accountId, status: "ACTIVE" }).lean(),
       TenantMemberModel.findOne({

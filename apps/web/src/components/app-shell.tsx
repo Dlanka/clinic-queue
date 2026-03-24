@@ -10,40 +10,97 @@ import {
   Settings,
   ShieldPlus,
   Stethoscope,
-  Users
+  Users,
+  type LucideIcon
 } from "lucide-react";
-import { useState, type PropsWithChildren } from "react";
-import { meQueryKey } from "@/hooks/use-me";
+import { useMemo, useState, type PropsWithChildren } from "react";
+import { meQueryKey, useMe } from "@/hooks/use-me";
 import { AuthService } from "@/services/auth.service";
 import { Sidebar, Toolbar } from "./layout";
 import { useToast } from "./ui";
 
-const navGroups = [
+type AppRole = "ADMIN" | "RECEPTION" | "DOCTOR" | "NURSE" | "PHARMACY_STAFF";
+
+type NavItemConfig = {
+  label: string;
+  to: string;
+  icon: LucideIcon;
+  badge?: string;
+  roles?: AppRole[];
+};
+
+type NavGroupConfig = {
+  label: string;
+  items: NavItemConfig[];
+};
+
+const navGroups: NavGroupConfig[] = [
   {
     label: "Overview",
     items: [
       { label: "Dashboard", to: "/", icon: LayoutDashboard },
-      { label: "Queue", to: "/queue", icon: ClipboardList, badge: "5" },
-      { label: "Appointments", to: "/appointments", icon: CalendarClock, badge: "2" }
+      { label: "Consultation", to: "/consultation", icon: Stethoscope, roles: ["DOCTOR"] },
+      { label: "Queue", to: "/queue", icon: ClipboardList, roles: ["ADMIN", "RECEPTION", "NURSE"] },
+      {
+        label: "Appointments",
+        to: "/appointments",
+        icon: CalendarClock,
+        roles: ["ADMIN", "RECEPTION", "NURSE"]
+      }
     ]
   },
   {
     label: "Records",
     items: [
-      { label: "Patients", to: "/patients", icon: Users },
-      { label: "Doctors", to: "/doctors", icon: Stethoscope },
-      { label: "Medicines", to: "/medicines", icon: FlaskConical },
-      { label: "Prescriptions", to: "/prescriptions", icon: Pill }
+      {
+        label: "Patients",
+        to: "/patients",
+        icon: Users,
+        roles: ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]
+      },
+      { label: "Doctors", to: "/doctors", icon: Stethoscope, roles: ["ADMIN"] },
+      {
+        label: "Medicines",
+        to: "/medicines",
+        icon: FlaskConical,
+        roles: ["ADMIN", "NURSE", "PHARMACY_STAFF"]
+      },
+      {
+        label: "Prescriptions",
+        to: "/prescriptions",
+        icon: Pill,
+        roles: ["ADMIN", "DOCTOR", "NURSE", "PHARMACY_STAFF"]
+      }
     ]
   },
   {
     label: "Admin",
-    items: [
-      { label: "Users", to: "/users", icon: ShieldPlus },
-      { label: "Settings", to: "/users", icon: Settings }
-    ]
+    items: [{ label: "Users", to: "/users", icon: ShieldPlus, roles: ["ADMIN"] }]
+  },
+  {
+    label: "System",
+    items: [{ label: "Settings", to: "/users", icon: Settings, roles: ["ADMIN"] }]
   }
-] as const;
+];
+
+function filterNavGroups(memberRoles: string[] | undefined) {
+  if (!memberRoles) {
+    return [];
+  }
+
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (!item.roles || item.roles.length === 0) {
+          return true;
+        }
+
+        return memberRoles.some((role) => item.roles?.includes(role as AppRole));
+      })
+    }))
+    .filter((group) => group.items.length > 0);
+}
 
 export function AppShell({ children }: PropsWithChildren) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,6 +108,12 @@ export function AppShell({ children }: PropsWithChildren) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
+  const meQuery = useMe();
+
+  const filteredNavGroups = useMemo(
+    () => filterNavGroups(meQuery.data?.member.roles),
+    [meQuery.data?.member.roles]
+  );
 
   const logoutMutation = useMutation({
     mutationFn: AuthService.logout,
@@ -82,14 +145,14 @@ export function AppShell({ children }: PropsWithChildren) {
 
       <div className="pt-toolbar">
         <Sidebar
-          navGroups={navGroups}
+          navGroups={filteredNavGroups}
           isItemActive={isItemActive}
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
         />
 
         <motion.main
-          className="ml-0 h-[calc(100vh-62px)] max-h-[calc(100vh-62px)]  overflow-hidden rounded-xl bg-neutral-10 md:ml-sidebar"
+          className="ml-0 mr-6 h-[calc(100vh-74px)] max-h-[calc(100vh-74px)] overflow-hidden rounded-xl bg-neutral-10/70 md:ml-sidebar-collapsed scrollbar-thin-minimal"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, delay: 0.05 }}

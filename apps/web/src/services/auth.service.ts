@@ -1,5 +1,4 @@
-import axios from "axios";
-import { http } from "./http";
+import { http, setTenantIdHeader } from "./http";
 
 export interface TenantChoice {
   tenantId: string;
@@ -41,6 +40,7 @@ export class AuthService {
       loginToken,
       tenantId
     });
+    setTenantIdHeader(tenantId);
     return data;
   }
 
@@ -51,21 +51,12 @@ export class AuthService {
 
   static async logout() {
     const { data } = await http.post<{ ok: boolean }>("/auth/logout");
+    setTenantIdHeader(undefined);
     return data;
   }
 
   static async me() {
-    try {
-      const { data } = await http.get<SessionMe>("/auth/me");
-      return data;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        await this.refresh();
-        const { data } = await http.get<SessionMe>("/auth/me");
-        return data;
-      }
-
-      throw error;
-    }
+    const { data } = await http.get<SessionMe>("/auth/me");
+    return data;
   }
 }

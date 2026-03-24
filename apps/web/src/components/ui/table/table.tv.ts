@@ -2,7 +2,7 @@ import { tv } from "tailwind-variants";
 
 export const tableStyles = tv({
   slots: {
-    wrapper: "overflow-hidden border-y border-subtle bg-neutral-30",
+    wrapper: "overflow-x-auto border-y border-subtle bg-neutral-30",
     table: "min-w-full border-collapse",
     head: "bg-neutral-30",
     th: "px-4 py-2.5 text-left text-2xs font-semibold uppercase tracking-[0.08em] text-neutral-70 first:pl-6 last:pr-6",

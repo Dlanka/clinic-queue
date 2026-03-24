@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/cn";
 import { IconButton } from "../icon-button";
 import { rightPanelModalStyles } from "./right-panel-modal.tv";
 
@@ -8,18 +9,22 @@ type RightPanelModalProps = {
   open: boolean;
   title: string;
   description?: string;
+  headerContent?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   onClose: () => void;
+  panelClassName?: string;
 };
 
 export function RightPanelModal({
   open,
   title,
   description,
+  headerContent,
   children,
   footer,
-  onClose
+  onClose,
+  panelClassName
 }: RightPanelModalProps) {
   const [host, setHost] = useState<HTMLElement | null>(null);
   const styles = rightPanelModalStyles();
@@ -85,7 +90,7 @@ export function RightPanelModal({
             key="panel"
             role="dialog"
             aria-modal="true"
-            className={styles.panel()}
+            className={cn(styles.panel(), panelClassName)}
             initial={{ x: 44 }}
             animate={{ x: 0 }}
             exit={{ x: 44 }}
@@ -99,6 +104,7 @@ export function RightPanelModal({
                 </div>
                 <IconButton iconName="x" aria-label="Close panel" onClick={onClose} />
               </div>
+              {headerContent ? <div className="mt-4">{headerContent}</div> : null}
             </header>
 
             <div className={styles.body()}>{children}</div>

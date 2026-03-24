@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useMemo, useState } from "react";
 import type { Patient } from "@/services/patient.service";
-import type { Visit } from "@/services/visit.service";
 import {
   createInitialPatientsUiState,
   type PatientsUiState
@@ -12,8 +11,6 @@ type PatientsPageContextValue = PatientsUiState & {
   openEditModal: (patient: Patient) => void;
   closeModal: () => void;
   selectPatient: (patientId: string) => void;
-  openPrescriptionModal: (visit: Visit) => void;
-  closePrescriptionModal: () => void;
 };
 
 const PatientsPageContext = createContext<PatientsPageContextValue | null>(null);
@@ -41,18 +38,6 @@ export function PatientsPageProvider({ children }: { children: ReactNode }) {
           ...prev,
           modalOpen: false,
           editingPatient: null
-        })),
-      openPrescriptionModal: (visit: Visit) =>
-        setState((prev) => ({
-          ...prev,
-          prescriptionModalOpen: true,
-          prescriptionVisit: visit
-        })),
-      closePrescriptionModal: () =>
-        setState((prev) => ({
-          ...prev,
-          prescriptionModalOpen: false,
-          prescriptionVisit: null
         })),
       selectPatient: (patientId: string) =>
         setState((prev) => ({

@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PlaceholderPage } from "../components/placeholder-page";
+import { RoleGate } from "@/components/role-gate";
+import { AppointmentsPage } from "@/features/appointments";
 
 export const Route = createFileRoute("/appointments")({
   component: () => (
-    <PlaceholderPage
-      title="Appointments"
-      description="Schedule and manage clinic appointments from this module."
-    />
+    <RoleGate allowedRoles={["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]}>
+      <AppointmentsPage />
+    </RoleGate>
   )
 });

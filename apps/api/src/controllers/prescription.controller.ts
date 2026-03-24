@@ -10,7 +10,8 @@ export const PrescriptionController = {
       }
 
       const status = req.query.status as "PRESCRIBED" | "DISPENSED" | undefined;
-      const prescriptions = await PrescriptionService.list(req.auth.tenantId, status);
+      const visitId = req.query.visitId as string | undefined;
+      const prescriptions = await PrescriptionService.list(req.auth.tenantId, status, visitId);
       return res.status(200).json({ prescriptions });
     } catch (error) {
       return next(error);
@@ -46,6 +47,25 @@ export const PrescriptionController = {
         req.auth.tenantId,
         String(req.params.id)
       );
+      return res.status(200).json({ prescription });
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  update: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const prescription = await PrescriptionService.update({
+        tenantId: req.auth.tenantId,
+        prescriptionId: String(req.params.id),
+        prescribedByMemberId: req.auth.memberId,
+        items: req.body.items
+      });
+
       return res.status(200).json({ prescription });
     } catch (error) {
       return next(error);
