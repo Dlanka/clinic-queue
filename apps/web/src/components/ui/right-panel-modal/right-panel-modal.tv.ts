@@ -20,19 +20,23 @@ export const rightPanelModalStyles = tv({
     variant: {
       info: {
         iconWrap:
-          "bg-info-soft text-info shadow-[0_0_20px_color-mix(in_srgb,var(--color-info)_28%,transparent)]"
+          "bg-info-soft text-info shadow-[0_0_20px_color-mix(in_srgb,var(--color-info)_28%,transparent)]",
+        header: "bg-info-soft/30"
       },
       success: {
         iconWrap:
-          "bg-success-soft text-success shadow-[0_0_20px_color-mix(in_srgb,var(--color-success)_28%,transparent)]"
+          "bg-success-soft text-success shadow-[0_0_20px_color-mix(in_srgb,var(--color-success)_28%,transparent)]",
+        header: "bg-success-soft/30"
       },
       warning: {
         iconWrap:
-          "bg-warning-soft text-warning shadow-[0_0_20px_color-mix(in_srgb,var(--color-warning)_28%,transparent)]"
+          "bg-warning-soft text-warning shadow-[0_0_20px_color-mix(in_srgb,var(--color-warning)_28%,transparent)]",
+        header: "bg-warning-soft/30"
       },
       danger: {
         iconWrap:
-          "bg-danger-soft text-danger shadow-[0_0_20px_color-mix(in_srgb,var(--color-danger)_28%,transparent)]"
+          "bg-danger-soft text-danger shadow-[0_0_20px_color-mix(in_srgb,var(--color-danger)_28%,transparent)]",
+        header: "bg-danger-soft/30"
       }
     }
   },

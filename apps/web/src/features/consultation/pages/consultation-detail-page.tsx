@@ -64,6 +64,7 @@ export function ConsultationDetailPage({
         {detail.activeTab === "clinical" ? (
           <ConsultationClinicalPanel
             register={detail.form.register}
+            patientName={detail.patientQuery.data.fullName}
             visits={detail.visitsQuery.data ?? []}
             prescriptions={detail.patientPrescriptionsQuery.data ?? []}
             historyLoading={

@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import type { IconName } from "@/config/icons";
+import { iconMap, type IconName } from "@/config/icons";
 import { cn } from "@/lib/cn";
 import { IconButton } from "../icon-button";
 import { SectionDivider } from "../section-divider";
 
 type CollapsibleSectionProps = {
-  label: string;
+  label: string | React.ReactNode;
   iconName?: IconName;
   open: boolean;
   onToggle: () => void;
@@ -29,25 +29,34 @@ export function CollapsibleSection({
   headerClassName,
   contentClassName
 }: CollapsibleSectionProps) {
+  const Icon = iconName ? iconMap[iconName] : null;
+
   return (
     <section
-      className={cn("overflow-hidden rounded-md border border-subtle bg-neutral-20/70", className)}
+      className={cn("overflow-hidden rounded-md border border-subtle bg-neutral-30/70", className)}
     >
       <div
         className={cn(
           "flex items-center justify-between px-3 py-2 cursor-pointer ",
           headerClassName,
-          open ? "bg-neutral-40/50" : ""
+          open ? "bg-neutral-40/50" : "bg-primary-soft/35"
         )}
         onClick={onToggle}
       >
-        <SectionDivider
-          label={label}
-          iconName={iconName}
-          showLeadingLine={false}
-          showTrailingLine={false}
-          className="w-full"
-        />
+        <div className="flex gap-2">
+          {Icon ? (
+            <span
+              className={cn(
+                "flex size-5 items-center justify-center rounded-xs bg-tertiary-soft text-tertiary"
+              )}
+            >
+              <Icon size={12} />
+            </span>
+          ) : null}
+
+          <div className="text-sm text-primary">{label}</div>
+        </div>
+
         <IconButton
           size="sm"
           variant="text"

@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge, Button, Card, Input, TanstackTable } from "@/components/ui";
 import type { IconName } from "@/config/icons";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import { cn } from "@/lib/cn";
 import type { QueueEntry } from "@/services/queue.service";
+import { formatQueueTicket } from "@/utils/queue-ticket";
 
 interface WaitingPatientsListProps {
   rows: QueueEntry[];
@@ -52,6 +54,8 @@ export function WaitingPatientsList({
   updatedAt,
   headerAction
 }: WaitingPatientsListProps) {
+  const settingsQuery = useTenantSettings();
+  const queueSettings = settingsQuery.data?.queue;
   const [searchTerm, setSearchTerm] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("ALL");
 
@@ -60,17 +64,17 @@ export function WaitingPatientsList({
       {
         id: "no",
         header: "NO",
-        size: 72,
-        minSize: 64,
-        maxSize: 80,
+        size: 100,
+        minSize: 100,
+        maxSize: 100,
         cell: ({ row }) => (
           <span
             className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-md border border-subtle bg-neutral-40 text-sm font-semibold",
+              "inline-flex h-9 px-2 items-center justify-center rounded-md border border-subtle bg-neutral-40 text-xs font-semibold",
               row.original.isPriority ? "text-warning" : "text-neutral-95"
             )}
           >
-            {row.original.queueNumber}
+            {formatQueueTicket(row.original.queueNumber, queueSettings)}
           </span>
         )
       },
@@ -150,7 +154,7 @@ export function WaitingPatientsList({
         )
       }
     ],
-    [actionBusy, onStart]
+    [actionBusy, onStart, queueSettings]
   );
 
   const filteredRows = useMemo(() => {

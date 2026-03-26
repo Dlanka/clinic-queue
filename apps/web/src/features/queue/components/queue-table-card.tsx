@@ -117,11 +117,11 @@ export function QueueTableCard({
       {
         id: "number",
         header: "Queue #",
-        size: 92,
-        minSize: 92,
-        maxSize: 92,
+        size: 100,
+        minSize: 100,
+        maxSize: 100,
         cell: ({ row }) => (
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-subtle bg-neutral-40 text-sm font-semibold">
+          <span className="inline-flex h-8 px-2 items-center justify-center rounded-md border border-subtle bg-neutral-40 text-xs font-semibold">
             {formatQueueTicket(row.original.queueNumber, queueSettings)}
           </span>
         )
@@ -148,7 +148,9 @@ export function QueueTableCard({
                 </Badge>
               ) : null}
             </div>
-            <p className="text-xs text-neutral-70">{formatDoctorDisplayName(row.original.doctorName)}</p>
+            <p className="text-xs text-neutral-70">
+              {formatDoctorDisplayName(row.original.doctorName)}
+            </p>
           </div>
         )
       },
@@ -309,6 +311,3 @@ export function QueueTableCard({
     </Card>
   );
 }
-
-
-

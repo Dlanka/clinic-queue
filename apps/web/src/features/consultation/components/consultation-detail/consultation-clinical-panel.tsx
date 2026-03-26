@@ -7,6 +7,7 @@ import { ConsultationQuickHistoryCard } from "./consultation-quick-history-card"
 
 interface ConsultationClinicalPanelProps {
   register: UseFormRegister<ConsultationValues>;
+  patientName: string;
   visits: Visit[];
   prescriptions: Prescription[];
   historyLoading: boolean;
@@ -16,6 +17,7 @@ interface ConsultationClinicalPanelProps {
 
 export function ConsultationClinicalPanel({
   register,
+  patientName,
   visits,
   prescriptions,
   historyLoading,
@@ -25,6 +27,7 @@ export function ConsultationClinicalPanel({
   return (
     <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <ConsultationQuickHistoryCard
+        patientName={patientName}
         visits={visits}
         prescriptions={prescriptions}
         historyLoading={historyLoading}

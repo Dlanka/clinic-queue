@@ -39,7 +39,7 @@ export function SectionDivider({
       ) : null}
       <p
         className={cn(
-          "text-3xs font-semibold uppercase tracking-section text-neutral-70",
+          "text-3xs font-semibold uppercase tracking-section text-neutral-70 ",
           labelClassName
         )}
       >

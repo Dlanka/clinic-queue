@@ -1,10 +1,13 @@
 import { format } from "date-fns";
+import { useState } from "react";
 import { Badge, Button, Card } from "@/components/ui";
+import { PrescriptionHistoryModal, VisitHistoryModal } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { Prescription } from "@/services/prescription.service";
 import type { Visit } from "@/services/visit.service";
 
 interface ConsultationQuickHistoryCardProps {
+  patientName: string;
   visits: Visit[];
   prescriptions: Prescription[];
   historyLoading: boolean;
@@ -12,12 +15,15 @@ interface ConsultationQuickHistoryCardProps {
 }
 
 export function ConsultationQuickHistoryCard({
+  patientName,
   visits,
   prescriptions,
   historyLoading,
   queueNotes
 }: ConsultationQuickHistoryCardProps) {
   const visibleVisits = visits.slice(0, 2);
+  const [visitsModalOpen, setVisitsModalOpen] = useState(false);
+  const [prescriptionsModalOpen, setPrescriptionsModalOpen] = useState(false);
 
   return (
     <Card className="overflow-hidden">
@@ -80,6 +86,7 @@ export function ConsultationQuickHistoryCard({
               intent="neutral"
               startIconName="list"
               className="w-full"
+              onClick={() => setVisitsModalOpen(true)}
             >
               View All Visits
             </Button>
@@ -150,12 +157,30 @@ export function ConsultationQuickHistoryCard({
               intent="neutral"
               startIconName="list"
               className="w-full"
+              onClick={() => setPrescriptionsModalOpen(true)}
             >
               View All Prescriptions
             </Button>
           </div>
         </div>
       </Card.Body>
+
+      <VisitHistoryModal
+        open={visitsModalOpen}
+        onClose={() => setVisitsModalOpen(false)}
+        patientName={patientName}
+        visits={visits}
+        prescriptions={prescriptions}
+        loading={historyLoading}
+      />
+
+      <PrescriptionHistoryModal
+        open={prescriptionsModalOpen}
+        onClose={() => setPrescriptionsModalOpen(false)}
+        patientName={patientName}
+        prescriptions={prescriptions}
+        allergyNote={queueNotes}
+      />
     </Card>
   );
 }

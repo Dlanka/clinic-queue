@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+ï»¿import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { differenceInMinutes, format, isToday, parseISO } from "date-fns";
 import { Badge, Button, Card, EmptyState, PageHeader, Table } from "@/components/ui";
@@ -59,23 +59,6 @@ function DashboardPage() {
   const dashboardRefreshMs = parsePositiveInt(settingsQuery.data?.system.dashboardRefreshSeconds, 30) * 1000;
   const queueSettings = settingsQuery.data?.queue;
   const today = format(new Date(), "yyyy-MM-dd");
-
-  const shouldRedirectDoctorToConsultation =
-    (settingsQuery.data?.access.doctorLandingConsultation ?? true) &&
-    memberRoles?.includes("DOCTOR") &&
-    !memberRoles?.some((role) => ["ADMIN", "RECEPTION", "NURSE", "PHARMACY_STAFF"].includes(role));
-
-  useEffect(() => {
-    if (!shouldRedirectDoctorToConsultation) {
-      return;
-    }
-
-    void navigate({ to: "/consultation" });
-  }, [navigate, shouldRedirectDoctorToConsultation]);
-
-  if (shouldRedirectDoctorToConsultation) {
-    return <div className="py-8 text-center text-sm text-neutral-70">Opening consultation...</div>;
-  }
   const canAccessQueue = hasAnyRole(memberRoles, ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]);
   const canAccessAppointments = hasAnyRole(memberRoles, ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]);
   const canAccessPatients = hasAnyRole(memberRoles, ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]);
@@ -184,7 +167,7 @@ function DashboardPage() {
     <div className="space-y-5">
       <PageHeader
         title="Dashboard"
-        subtitle={`${format(new Date(), "EEEE, MMMM d, yyyy")} · Real-time clinic snapshot`}
+        subtitle={`${format(new Date(), "EEEE, MMMM d, yyyy")} Â· Real-time clinic snapshot`}
         iconName="layoutDashboard"
         iconClassName="bg-primary-soft text-primary"
         action={
@@ -325,7 +308,7 @@ function DashboardPage() {
                   >
                     <p className="text-sm font-semibold text-neutral-95">{item.patientName}</p>
                     <p className="text-xs text-neutral-70">
-                      {format(new Date(item.scheduledAt), "MMM d, h:mm a")} · {item.doctorName}
+                      {format(new Date(item.scheduledAt), "MMM d, h:mm a")} Â· {item.doctorName}
                     </p>
                   </div>
                 ))

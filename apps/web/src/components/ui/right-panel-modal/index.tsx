@@ -11,6 +11,7 @@ type RightPanelModalVariant = "info" | "success" | "warning" | "danger";
 type RightPanelModalProps = {
   open: boolean;
   title: string;
+  titleBadge?: ReactNode;
   description?: string;
   headerContent?: ReactNode;
   children: ReactNode;
@@ -24,6 +25,7 @@ type RightPanelModalProps = {
 export function RightPanelModal({
   open,
   title,
+  titleBadge,
   description,
   headerContent,
   children,
@@ -111,7 +113,10 @@ export function RightPanelModal({
                     <HeaderIcon size={20} />
                   </span>
                   <div>
-                    <h2 className={styles.title()}>{title}</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className={styles.title()}>{title}</h2>
+                      {titleBadge}
+                    </div>
                     {description ? <p className={styles.description()}>{description}</p> : null}
                   </div>
                 </div>

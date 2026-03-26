@@ -85,12 +85,22 @@ export const selectBaseStyles = baseStyles;
 export function Select<IsMulti extends boolean = false>({
   inputId,
   styles,
+  menuPortalTarget: customMenuPortalTarget,
+  menuPosition: customMenuPosition,
   ...props
 }: SelectProps<IsMulti>) {
+  // Use document.body as portal target to prevent overflow clipping
+  const menuPortalTarget =
+    customMenuPortalTarget ?? (typeof document !== "undefined" ? document.body : undefined);
+  // Use fixed positioning to prevent ancestor scroll/overflow issues
+  const menuPosition = customMenuPosition ?? "fixed";
+
   return (
     <ReactSelect<SelectOption, IsMulti, GroupBase<SelectOption>>
       inputId={inputId}
       styles={{ ...selectBaseStyles, ...styles }}
+      menuPortalTarget={menuPortalTarget}
+      menuPosition={menuPosition}
       {...props}
     />
   );
