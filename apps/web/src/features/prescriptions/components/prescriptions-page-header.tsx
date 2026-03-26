@@ -10,7 +10,7 @@ export function PrescriptionsPageHeader({ onNewPrescription }: PrescriptionsPage
     <PageHeader
       title="Prescriptions"
       subtitle={`Pharmacy view for dispensing and tracking prescriptions · ${format(new Date(), "MMM d, yyyy")}`}
-      iconName="clipboardList"
+      iconName="pill"
       iconClassName="bg-primary-soft text-primary"
       action={
         <Button startIconName="plus" onClick={onNewPrescription}>

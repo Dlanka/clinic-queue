@@ -13,7 +13,10 @@ interface PatientsPageProps {
   consultationMode?: boolean;
 }
 
-export function PatientsPage({ initialPatientId, consultationMode = false }: PatientsPageProps = {}) {
+export function PatientsPage({
+  initialPatientId,
+  consultationMode = false
+}: PatientsPageProps = {}) {
   return (
     <PatientsPageProvider>
       <PatientsPageContent
@@ -89,7 +92,7 @@ function PatientsPageContent({
   }, [rows, searchTerm]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col h-full">
       <PatientsPageHeader
         title={consultationMode ? "Consultation" : "Patients"}
         subtitle={
@@ -102,7 +105,7 @@ function PatientsPageContent({
         onCreate={openCreateModal}
       />
 
-      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)] flex-1 max-h-full h-full">
         <PatientsTableCard
           rows={filteredRows}
           isLoading={patientsQuery.isLoading}

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Controller } from "react-hook-form";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import {
   Button,
   CenterModal,
@@ -28,7 +29,8 @@ export function MedicineFormModal({
   onClose,
   onSubmit
 }: MedicineFormModalProps) {
-  const form = useMedicineForm(open, medicine);
+  const settingsQuery = useTenantSettings(open);
+  const form = useMedicineForm(open, medicine, settingsQuery.data?.pharmacy.defaultLowStockThreshold);
   const categoryQuery = useQuery({
     queryKey: ["medicine-categories"],
     queryFn: MedicineService.listCategories,
@@ -216,3 +218,5 @@ export function MedicineFormModal({
     </CenterModal>
   );
 }
+
+

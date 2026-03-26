@@ -5,6 +5,7 @@ import {
 } from "../models/appointment.model";
 import { DoctorModel } from "../models/doctor.model";
 import { PatientModel } from "../models/patient.model";
+import { SettingsService } from "./settings.service";
 import { HttpError } from "../utils/http-error";
 
 interface ListAppointmentsFilters {
@@ -130,34 +131,47 @@ export class AppointmentService {
 
     const appointments = await AppointmentModel.find(query)
       .sort({ scheduledAt: 1 })
-      .populate("patientId", "firstName lastName")
-      .populate("doctorId", "name")
       .lean();
 
-    return appointments.map((appointment) => {
-      const patientNameParts = [
-        (appointment.patientId as { firstName?: string })?.firstName ?? "",
-        (appointment.patientId as { lastName?: string })?.lastName ?? ""
-      ];
-      const patientName = patientNameParts.join(" ").trim();
-      const patientId = (appointment.patientId as { _id?: { toString: () => string } })?._id;
-      const doctorId = (appointment.doctorId as { _id?: { toString: () => string } })?._id;
+    const patientIds = Array.from(
+      new Set(appointments.map((appointment) => appointment.patientId.toString()))
+    );
+    const doctorIds = Array.from(
+      new Set(appointments.map((appointment) => appointment.doctorId.toString()))
+    );
 
-      if (!patientId || !doctorId) {
-        throw new HttpError(409, "Appointment has missing patient or doctor relation");
-      }
+    const [patients, doctors] = await Promise.all([
+      PatientModel.find({ _id: { $in: patientIds }, tenantId })
+        .select("_id firstName lastName")
+        .lean(),
+      DoctorModel.find({ _id: { $in: doctorIds }, tenantId }).select("_id name").lean()
+    ]);
+
+    const patientNameById = new Map(
+      patients.map((patient) => [
+        patient._id.toString(),
+        `${patient.firstName} ${patient.lastName}`.trim() || "Unknown Patient"
+      ])
+    );
+    const doctorNameById = new Map(
+      doctors.map((doctor) => [doctor._id.toString(), doctor.name.trim() || "Unknown Doctor"])
+    );
+
+    return appointments.map((appointment) => {
+      const patientId = appointment.patientId;
+      const doctorId = appointment.doctorId;
+      const patientIdString = patientId.toString();
+      const doctorIdString = doctorId.toString();
 
       return toAppointmentDto({
         ...appointment,
         patientId: Object.assign(patientId, {
-          toString: () => patientId.toString(),
-          fullName: patientName || "Unknown Patient"
+          toString: () => patientIdString,
+          fullName: patientNameById.get(patientIdString) ?? "Unknown Patient"
         }),
         doctorId: Object.assign(doctorId, {
-          toString: () => doctorId.toString(),
-          name:
-            ((appointment.doctorId as { name?: string })?.name || "").trim() ||
-            "Unknown Doctor"
+          toString: () => doctorIdString,
+          name: doctorNameById.get(doctorIdString) ?? "Unknown Doctor"
         })
       });
     });
@@ -170,7 +184,10 @@ export class AppointmentService {
     ]);
 
     const scheduledAt = new Date(input.scheduledAt);
-    await ensureNoDoubleBooking(input.tenantId, input.doctorId, scheduledAt);
+    const settings = await SettingsService.getByTenantId(input.tenantId);
+    if (!settings?.system?.allowAppointmentDoubleBooking) {
+      await ensureNoDoubleBooking(input.tenantId, input.doctorId, scheduledAt);
+    }
 
     const appointment = await AppointmentModel.create({
       tenantId: input.tenantId,
@@ -189,38 +206,35 @@ export class AppointmentService {
       throw new HttpError(400, "Invalid appointment id");
     }
 
-    const appointment = await AppointmentModel.findOne({ _id: appointmentId, tenantId })
-      .populate("patientId", "firstName lastName")
-      .populate("doctorId", "name")
-      .lean();
+    const appointment = await AppointmentModel.findOne({ _id: appointmentId, tenantId }).lean();
 
     if (!appointment) {
       throw new HttpError(404, "Appointment not found");
     }
 
-    const patientId = (appointment.patientId as { _id?: { toString: () => string } })?._id;
-    const doctorId = (appointment.doctorId as { _id?: { toString: () => string } })?._id;
+    const patientId = appointment.patientId;
+    const doctorId = appointment.doctorId;
+    const [patient, doctor] = await Promise.all([
+      PatientModel.findOne({ _id: patientId, tenantId }).select("firstName lastName").lean(),
+      DoctorModel.findOne({ _id: doctorId, tenantId }).select("name").lean()
+    ]);
 
-    if (!patientId || !doctorId) {
-      throw new HttpError(409, "Appointment has missing patient or doctor relation");
-    }
-
-    const patientNameParts = [
-      (appointment.patientId as { firstName?: string })?.firstName ?? "",
-      (appointment.patientId as { lastName?: string })?.lastName ?? ""
-    ];
-    const patientName = patientNameParts.join(" ").trim();
-    const doctorName = ((appointment.doctorId as { name?: string })?.name || "").trim();
+    const patientName = patient
+      ? `${patient.firstName} ${patient.lastName}`.trim() || "Unknown Patient"
+      : "Unknown Patient";
+    const doctorName = doctor?.name?.trim() || "Unknown Doctor";
+    const patientIdString = patientId.toString();
+    const doctorIdString = doctorId.toString();
 
     return toAppointmentDto({
       ...appointment,
       patientId: Object.assign(patientId, {
-        toString: () => patientId.toString(),
-        fullName: patientName || "Unknown Patient"
+        toString: () => patientIdString,
+        fullName: patientName
       }),
       doctorId: Object.assign(doctorId, {
-        toString: () => doctorId.toString(),
-        name: doctorName || "Unknown Doctor"
+        toString: () => doctorIdString,
+        name: doctorName
       })
     });
   }
@@ -255,7 +269,8 @@ export class AppointmentService {
       input.scheduledAt !== undefined ||
       (input.status !== undefined && input.status !== "CANCELLED");
 
-    if (shouldCheckBooking) {
+    const settings = await SettingsService.getByTenantId(input.tenantId);
+    if (shouldCheckBooking && !settings?.system?.allowAppointmentDoubleBooking) {
       await ensureNoDoubleBooking(
         input.tenantId,
         nextDoctorId,

@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Controller } from "react-hook-form";
 import {
   Button,
@@ -24,6 +24,7 @@ interface QueueFormModalProps {
   patientsLoading: boolean;
   doctorsLoading: boolean;
   duplicatePatients: Patient[];
+  allowPriorityQueueEntries: boolean;
   onClose: () => void;
   onSubmit: (values: QueueFormValues) => void | Promise<void>;
   onDismissDuplicateNotice: () => void;
@@ -41,6 +42,7 @@ export function QueueFormModal({
   patientsLoading,
   doctorsLoading,
   duplicatePatients,
+  allowPriorityQueueEntries,
   onClose,
   onSubmit,
   onDismissDuplicateNotice,
@@ -63,12 +65,42 @@ export function QueueFormModal({
     }
   }, [onDismissDuplicateNotice, patientMode, quickPhone]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const currentDoctorId = form.getValues("doctorId");
+    const onlyDoctorOption = doctorOptions[0];
+    if (currentDoctorId || doctorOptions.length !== 1 || !onlyDoctorOption) {
+      return;
+    }
+
+    form.setValue("doctorId", onlyDoctorOption.value, {
+      shouldValidate: true,
+      shouldDirty: false
+    });
+  }, [doctorOptions, form, open]);
+
+  useEffect(() => {
+    if (allowPriorityQueueEntries) {
+      return;
+    }
+
+    form.setValue("isPriority", false, {
+      shouldValidate: false,
+      shouldDirty: false
+    });
+  }, [allowPriorityQueueEntries, form]);
+
   return (
     <RightPanelModal
       panelClassName="rounded-none"
       open={open}
       title="Add Queue Entry"
       description="Select existing patient or quick register"
+      iconName="clipboardList"
+      variant="info"
       headerContent={
         <SegmentedControl
           value={patientMode}
@@ -177,50 +209,52 @@ export function QueueFormModal({
             </FieldGroup>
           </div>
 
-          <Controller
-            control={form.control}
-            name="isPriority"
-            render={({ field }) => {
-              const checked = Boolean(field.value);
+          {allowPriorityQueueEntries ? (
+            <Controller
+              control={form.control}
+              name="isPriority"
+              render={({ field }) => {
+                const checked = Boolean(field.value);
 
-              return (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex cursor-pointer items-center justify-between rounded-lg border border-warning/45 bg-warning-soft/40 px-4 py-3"
-                  onClick={() => field.onChange(!checked)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      field.onChange(!checked);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-warning-soft text-warning">
-                      <ZapIcon size={16} />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-neutral-95">Priority Patient</p>
-                      <p className="text-xs text-neutral-70">
-                        Jump to front of queue - use for urgent cases
-                      </p>
+                return (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="flex cursor-pointer items-center justify-between rounded-lg border border-warning/45 bg-warning-soft/40 px-4 py-3"
+                    onClick={() => field.onChange(!checked)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        field.onChange(!checked);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-warning-soft text-warning">
+                        <ZapIcon size={16} />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-neutral-95">Priority Patient</p>
+                        <p className="text-xs text-neutral-70">
+                          Jump to front of queue - use for urgent cases
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <Switch
-                    intent="warning"
-                    checked={checked}
-                    onCheckedChange={field.onChange}
-                    onClick={(event) => event.stopPropagation()}
-                    label=""
-                    aria-label="Priority patient"
-                    disabled={loading}
-                  />
-                </div>
-              );
-            }}
-          />
+                    <Switch
+                      intent="warning"
+                      checked={checked}
+                      onCheckedChange={field.onChange}
+                      onClick={(event) => event.stopPropagation()}
+                      label=""
+                      aria-label="Priority patient"
+                      disabled={loading}
+                    />
+                  </div>
+                );
+              }}
+            />
+          ) : null}
         </div>
       </form>
     </RightPanelModal>

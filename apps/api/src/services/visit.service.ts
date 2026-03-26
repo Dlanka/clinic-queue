@@ -1,7 +1,9 @@
 import { isValidObjectId } from "mongoose";
 import { DoctorModel } from "../models/doctor.model";
 import { PatientModel } from "../models/patient.model";
+import { QueueEntryModel } from "../models/queue-entry.model";
 import { VisitModel } from "../models/visit.model";
+import { SettingsService } from "./settings.service";
 import { HttpError } from "../utils/http-error";
 
 interface CreateVisitInput {
@@ -54,6 +56,19 @@ export interface VisitDto {
 
 function normalizeString(value?: string) {
   return value?.trim() || undefined;
+}
+
+function parseNonNegativeInteger(value: string | undefined, fallback: number) {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+
+  return parsed;
 }
 
 function toVisitDto(
@@ -201,6 +216,40 @@ export class VisitService {
 
     if (!visit) {
       throw new HttpError(404, "Visit not found");
+    }
+
+    if (visit.queueEntryId) {
+      const [queueEntry, settings] = await Promise.all([
+        QueueEntryModel.findOne({
+          _id: visit.queueEntryId,
+          tenantId: input.tenantId
+        })
+          .select("status completedAt")
+          .lean(),
+        SettingsService.getByTenantId(input.tenantId)
+      ]);
+
+      if (queueEntry?.status === "COMPLETED" && settings?.clinical?.lockConsultationAfterCompletion) {
+        const editWindowHours = parseNonNegativeInteger(
+          settings.clinical.editWindowAfterCompletionHours,
+          24
+        );
+
+        if (editWindowHours === 0) {
+          throw new HttpError(409, "Completed consultation is locked for editing");
+        }
+
+        const completedAtTime = queueEntry.completedAt
+          ? new Date(queueEntry.completedAt).getTime()
+          : Number.NaN;
+        const editDeadlineTime = Number.isNaN(completedAtTime)
+          ? Number.NaN
+          : completedAtTime + editWindowHours * 60 * 60 * 1000;
+
+        if (!Number.isNaN(editDeadlineTime) && Date.now() > editDeadlineTime) {
+          throw new HttpError(409, "Edit window for completed consultation has expired");
+        }
+      }
     }
 
     if (typeof input.visitedAt === "string") {

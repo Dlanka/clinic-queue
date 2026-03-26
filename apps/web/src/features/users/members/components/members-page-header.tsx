@@ -1,15 +1,18 @@
-import { Button } from "@/components/ui";
+import { format } from "date-fns";
+import { Button, PageHeader } from "@/components/ui";
 
 export function MembersPageHeader({ onCreate }: { onCreate: () => void }) {
   return (
-    <section className="flex items-center justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-extrabold text-neutral-95">Members</h1>
-        <p className="text-sm text-neutral-80">Manage tenant memberships and role assignments.</p>
-      </div>
-      <Button startIconName="plus" onClick={onCreate}>
-        New Member
-      </Button>
-    </section>
+    <PageHeader
+      title="Members"
+      subtitle={`Manage tenant memberships and role assignments · ${format(new Date(), "MMM d, yyyy")}`}
+      iconName="shieldPlus"
+      iconClassName="bg-primary-soft text-primary"
+      action={
+        <Button startIconName="plus" onClick={onCreate}>
+          New Member
+        </Button>
+      }
+    />
   );
 }

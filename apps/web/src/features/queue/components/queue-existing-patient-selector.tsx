@@ -1,6 +1,6 @@
-﻿import { differenceInYears } from "date-fns";
+import { differenceInYears } from "date-fns";
 import { useMemo, useState } from "react";
-import { FieldGroup, Input } from "@/components/ui";
+import { Avatar, FieldGroup, Input } from "@/components/ui";
 import type { Patient } from "@/services/patient.service";
 
 interface QueueExistingPatientSelectorProps {
@@ -9,13 +9,6 @@ interface QueueExistingPatientSelectorProps {
   selectedPatientId?: string;
   error?: string;
   onSelectPatient: (patientId: string) => void;
-}
-
-function getInitials(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0]?.charAt(0) ?? "";
-  const second = parts[1]?.charAt(0) ?? "";
-  return (first + second).toUpperCase() || "P";
 }
 
 function getPatientMeta(patient: Patient) {
@@ -114,9 +107,7 @@ export function QueueExistingPatientSelector({
                     }`}
                     onClick={() => onSelectPatient(patient.id)}
                   >
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                      {getInitials(patient.fullName)}
-                    </span>
+                    <Avatar name={patient.fullName} size="md" className="h-9 w-9 shrink-0 text-xs" />
 
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold text-neutral-90">
@@ -145,3 +136,6 @@ export function QueueExistingPatientSelector({
     </div>
   );
 }
+
+
+

@@ -12,11 +12,13 @@ export const QueueController = {
       const status = req.query.status as "WAITING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | undefined;
       const date = req.query.date as string | undefined;
       const doctorId = req.query.doctorId as string | undefined;
+      const allDates = req.query.allDates === "1" || req.query.allDates === "true";
 
       const entries = await QueueService.list(req.auth.tenantId, {
         status,
         date,
-        doctorId
+        doctorId,
+        allDates
       });
 
       return res.status(200).json({ entries });

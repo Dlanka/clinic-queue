@@ -2,12 +2,15 @@ import { isValidObjectId } from "mongoose";
 import { DoctorModel } from "../models/doctor.model";
 import { PatientModel } from "../models/patient.model";
 import { QueueEntryModel, type QueueEntryStatus } from "../models/queue-entry.model";
+import { VisitModel } from "../models/visit.model";
+import { SettingsService } from "./settings.service";
 import { HttpError } from "../utils/http-error";
 
 interface QueueListFilters {
   status?: QueueEntryStatus;
   date?: string;
   doctorId?: string;
+  allDates?: boolean;
 }
 
 interface CreateQueueEntryInput {
@@ -67,6 +70,19 @@ function startOfDay(value: Date) {
 
 function ensureQueueStatus(value: string): value is QueueEntryStatus {
   return ["WAITING", "IN_PROGRESS", "COMPLETED", "CANCELLED"].includes(value);
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number) {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
 }
 
 function toQueueEntryDto(entry: PopulatedQueueEntry): QueueEntryDto {
@@ -172,17 +188,18 @@ export class QueueService {
       throw new HttpError(400, "Invalid doctor id");
     }
 
-    const queueDate = filters.date ? startOfDay(new Date(filters.date)) : startOfDay(new Date());
-
     const query: {
       tenantId: string;
-      queueDate: Date;
+      queueDate?: Date;
       status?: QueueEntryStatus;
       doctorId?: string;
     } = {
-      tenantId,
-      queueDate
+      tenantId
     };
+
+    if (!filters.allDates) {
+      query.queueDate = filters.date ? startOfDay(new Date(filters.date)) : startOfDay(new Date());
+    }
 
     if (filters.status) {
       query.status = filters.status;
@@ -210,9 +227,25 @@ export class QueueService {
 
   static async create(input: CreateQueueEntryInput) {
     await ensurePatientAndDoctorActive(input.tenantId, input.patientId, input.doctorId);
+    const settings = await SettingsService.getByTenantId(input.tenantId);
 
     const sourceDate = input.queuedAt ? new Date(input.queuedAt) : new Date();
     const queueDate = startOfDay(sourceDate);
+
+    const allowPriorityQueueEntries = Boolean(settings?.queue?.allowPriorityQueueEntries);
+    if (input.isPriority && !allowPriorityQueueEntries) {
+      throw new HttpError(409, "Priority queue entries are disabled by tenant settings");
+    }
+
+    const maxQueueSize = parsePositiveInteger(settings?.queue?.maxQueueSize, 100);
+    const todaysQueueCount = await QueueEntryModel.countDocuments({
+      tenantId: input.tenantId,
+      queueDate,
+      status: { $ne: "CANCELLED" }
+    });
+    if (todaysQueueCount >= maxQueueSize) {
+      throw new HttpError(409, `Maximum queue size reached (${maxQueueSize})`);
+    }
 
     let attempts = 0;
     while (attempts < 3) {
@@ -312,6 +345,29 @@ export class QueueService {
 
     if (current.status !== "IN_PROGRESS") {
       throw new HttpError(409, "Only IN_PROGRESS entries can be completed");
+    }
+
+    const [settings, latestVisit] = await Promise.all([
+      SettingsService.getByTenantId(input.tenantId),
+      VisitModel.findOne({
+        tenantId: input.tenantId,
+        queueEntryId: input.queueEntryId
+      })
+        .sort({ visitedAt: -1 })
+        .select("symptoms diagnosis")
+        .lean()
+    ]);
+
+    if (!latestVisit) {
+      throw new HttpError(409, "Cannot complete consultation without visit details");
+    }
+
+    if (settings?.clinical?.symptomsRequired && !latestVisit.symptoms?.trim()) {
+      throw new HttpError(409, "Symptoms are required to complete consultation");
+    }
+
+    if (settings?.clinical?.diagnosisRequiredToComplete && !latestVisit.diagnosis?.trim()) {
+      throw new HttpError(409, "Diagnosis is required to complete consultation");
     }
 
     await QueueEntryModel.findOneAndUpdate(

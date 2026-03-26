@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QueueRouteImport } from './routes/queue'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrescriptionsRouteImport } from './routes/prescriptions'
 import { Route as PatientsRouteImport } from './routes/patients'
 import { Route as MedicinesRouteImport } from './routes/medicines'
@@ -29,9 +31,19 @@ const UsersRoute = UsersRouteImport.update({
   path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QueueRoute = QueueRouteImport.update({
   id: '/queue',
   path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrescriptionsRoute = PrescriptionsRouteImport.update({
@@ -104,7 +116,9 @@ export interface FileRoutesByFullPath {
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
+  '/profile': typeof ProfileRoute
   '/queue': typeof QueueRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/consultation/$queueId': typeof ConsultationQueueIdRoute
   '/queue/$queueId': typeof QueueQueueIdRoute
@@ -119,6 +133,8 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/consultation/$queueId': typeof ConsultationQueueIdRoute
   '/queue/$queueId': typeof QueueQueueIdRoute
@@ -135,7 +151,9 @@ export interface FileRoutesById {
   '/medicines': typeof MedicinesRoute
   '/patients': typeof PatientsRoute
   '/prescriptions': typeof PrescriptionsRoute
+  '/profile': typeof ProfileRoute
   '/queue': typeof QueueRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/consultation/$queueId': typeof ConsultationQueueIdRoute
   '/queue/$queueId': typeof QueueQueueIdRoute
@@ -153,7 +171,9 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/patients'
     | '/prescriptions'
+    | '/profile'
     | '/queue'
+    | '/settings'
     | '/users'
     | '/consultation/$queueId'
     | '/queue/$queueId'
@@ -168,6 +188,8 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/patients'
     | '/prescriptions'
+    | '/profile'
+    | '/settings'
     | '/users'
     | '/consultation/$queueId'
     | '/queue/$queueId'
@@ -183,7 +205,9 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/patients'
     | '/prescriptions'
+    | '/profile'
     | '/queue'
+    | '/settings'
     | '/users'
     | '/consultation/$queueId'
     | '/queue/$queueId'
@@ -200,7 +224,9 @@ export interface RootRouteChildren {
   MedicinesRoute: typeof MedicinesRoute
   PatientsRoute: typeof PatientsRoute
   PrescriptionsRoute: typeof PrescriptionsRoute
+  ProfileRoute: typeof ProfileRoute
   QueueRoute: typeof QueueRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
 }
 
@@ -213,11 +239,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/queue': {
       id: '/queue'
       path: '/queue'
       fullPath: '/queue'
       preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prescriptions': {
@@ -342,7 +382,9 @@ const rootRouteChildren: RootRouteChildren = {
   MedicinesRoute: MedicinesRoute,
   PatientsRoute: PatientsRoute,
   PrescriptionsRoute: PrescriptionsRoute,
+  ProfileRoute: ProfileRoute,
   QueueRoute: QueueRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport

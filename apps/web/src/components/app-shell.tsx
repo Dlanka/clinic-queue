@@ -40,12 +40,17 @@ const navGroups: NavGroupConfig[] = [
     items: [
       { label: "Dashboard", to: "/", icon: LayoutDashboard },
       { label: "Consultation", to: "/consultation", icon: Stethoscope, roles: ["DOCTOR"] },
-      { label: "Queue", to: "/queue", icon: ClipboardList, roles: ["ADMIN", "RECEPTION", "NURSE"] },
+      {
+        label: "Queue",
+        to: "/queue",
+        icon: ClipboardList,
+        roles: ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]
+      },
       {
         label: "Appointments",
         to: "/appointments",
         icon: CalendarClock,
-        roles: ["ADMIN", "RECEPTION", "NURSE"]
+        roles: ["ADMIN", "RECEPTION", "DOCTOR", "NURSE"]
       }
     ]
   },
@@ -79,7 +84,7 @@ const navGroups: NavGroupConfig[] = [
   },
   {
     label: "System",
-    items: [{ label: "Settings", to: "/users", icon: Settings, roles: ["ADMIN"] }]
+    items: [{ label: "Settings", to: "/settings", icon: Settings, roles: ["ADMIN"] }]
   }
 ];
 
@@ -114,6 +119,21 @@ export function AppShell({ children }: PropsWithChildren) {
     () => filterNavGroups(meQuery.data?.member.roles),
     [meQuery.data?.member.roles]
   );
+  const profileLabel = useMemo(() => {
+    const source = meQuery.data?.account.name?.trim() || meQuery.data?.account.email?.trim();
+    if (!source) {
+      return "ME";
+    }
+
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const firstInitial = parts[0]?.charAt(0) ?? "";
+      const secondInitial = parts[1]?.charAt(0) ?? "";
+      return `${firstInitial}${secondInitial}`.toUpperCase();
+    }
+
+    return (parts[0]?.slice(0, 2) ?? "ME").toUpperCase();
+  }, [meQuery.data?.account.email, meQuery.data?.account.name]);
 
   const logoutMutation = useMutation({
     mutationFn: AuthService.logout,
@@ -139,8 +159,9 @@ export function AppShell({ children }: PropsWithChildren) {
     <div className="min-h-screen bg-neutral-20">
       <Toolbar
         onOpenMenu={() => setMobileOpen(true)}
-        onLogout={() => logoutMutation.mutate()}
-        logoutPending={logoutMutation.isPending}
+        onOpenProfile={() => navigate({ to: "/profile" })}
+        profileLabel={profileLabel}
+        tenantName={meQuery.data?.tenant.name ?? "Clinic"}
       />
 
       <div className="pt-toolbar">
@@ -149,10 +170,12 @@ export function AppShell({ children }: PropsWithChildren) {
           isItemActive={isItemActive}
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
+          onLogout={() => logoutMutation.mutate()}
+          logoutPending={logoutMutation.isPending}
         />
 
         <motion.main
-          className="ml-0 mr-6 h-[calc(100vh-74px)] max-h-[calc(100vh-74px)] overflow-hidden rounded-xl bg-neutral-10/70 md:ml-sidebar-collapsed scrollbar-thin-minimal"
+          className="ml-0 mr-6 h-[calc(100vh-74px)] max-h-[calc(100vh-74px)] overflow-hidden rounded-xl bg-neutral-10 md:ml-sidebar-collapsed scrollbar-thin-minimal"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, delay: 0.05 }}

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
+import { LogOut, type LucideIcon } from "lucide-react";
 import { Button } from "../ui";
 
 export interface SidebarNavItem {
@@ -20,15 +20,25 @@ interface SidebarProps {
   isItemActive: (to: string) => boolean;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  onLogout: () => void;
+  logoutPending?: boolean;
 }
 
-export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: SidebarProps) {
+export function Sidebar({
+  navGroups,
+  isItemActive,
+  mobileOpen,
+  onCloseMobile,
+  onLogout,
+  logoutPending = false
+}: SidebarProps) {
   const renderNavContent = (onItemClick?: () => void) =>
     navGroups.map((group, groupIndex) => (
       <div key={group.label}>
-        <p className="sidebar-group-label px-2 pb-1.5 pt-3 text-3xs font-bold uppercase tracking-[0.14em] text-neutral-70">
+        {/* Group label hidden for now */}
+        {/* <p className="sidebar-group-label px-2 pb-1.5 pt-3 text-3xs font-bold uppercase tracking-[0.14em] text-neutral-70">
           {group.label}
-        </p>
+        </p> */}
         <nav className="sidebar-nav-list flex flex-col gap-1.5">
           {group.items.map((item) => {
             const Icon = item.icon;
@@ -71,7 +81,24 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.24 }}
       >
-        {renderNavContent()}
+        <div className="flex h-full flex-col">
+          <div className="scrollbar-thin-minimal min-h-0 flex-1 overflow-y-auto">
+            {renderNavContent()}
+          </div>
+
+          <div className="mt-2 border-t border-neutral-variant-80/60 pt-2">
+            <button
+              type="button"
+              data-tip="Logout"
+              className="nav-item relative flex h-10 w-full items-center gap-3 rounded-md px-3.5 text-sm font-semibold text-neutral-90 transition-all hover:bg-danger-soft/30 hover:text-danger"
+              onClick={onLogout}
+              disabled={logoutPending}
+            >
+              <LogOut size={18} className="nav-item-icon shrink-0" />
+              <span className="nav-item-label">{logoutPending ? "Logging out..." : "Logout"}</span>
+            </button>
+          </div>
+        </div>
       </motion.aside>
 
       <AnimatePresence>
@@ -102,7 +129,27 @@ export function Sidebar({ navGroups, isItemActive, mobileOpen, onCloseMobile }: 
                   aria-label="Close navigation"
                 />
               </div>
-              {renderNavContent(onCloseMobile)}
+              <div className="flex h-full flex-col">
+                <div className="scrollbar-thin-minimal min-h-0 flex-1 overflow-y-auto">
+                  {renderNavContent(onCloseMobile)}
+                </div>
+                <div className="mt-2 border-t border-neutral-variant-80/60 pt-2">
+                  <button
+                    type="button"
+                    className="nav-item relative flex h-10 w-full items-center gap-3 rounded-md px-3.5 text-sm font-semibold text-neutral-90 transition-all hover:bg-danger-soft/30 hover:text-danger"
+                    onClick={() => {
+                      onCloseMobile();
+                      onLogout();
+                    }}
+                    disabled={logoutPending}
+                  >
+                    <LogOut size={18} className="nav-item-icon shrink-0" />
+                    <span className="nav-item-label">
+                      {logoutPending ? "Logging out..." : "Logout"}
+                    </span>
+                  </button>
+                </div>
+              </div>
             </motion.aside>
           </>
         ) : null}

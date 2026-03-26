@@ -22,7 +22,22 @@ const medicineFormResolver: Resolver<MedicineFormValues> = async (values) => {
   return { values: {}, errors: errors as never };
 };
 
-export function useMedicineForm(open: boolean, medicine: Medicine | null) {
+function parseNonNegativeInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+export function useMedicineForm(
+  open: boolean,
+  medicine: Medicine | null,
+  defaultLowStockThreshold?: string
+) {
+  const defaultReorderLevel = parseNonNegativeInt(defaultLowStockThreshold, 0);
+
   const form = useForm<MedicineFormValues>({
     resolver: medicineFormResolver,
     defaultValues: {
@@ -30,7 +45,7 @@ export function useMedicineForm(open: boolean, medicine: Medicine | null) {
       category: medicine?.category ?? "",
       unit: medicine?.unit ?? "",
       stockQty: medicine?.stockQty ?? 0,
-      reorderLevel: medicine?.reorderLevel ?? 0,
+      reorderLevel: medicine?.reorderLevel ?? defaultReorderLevel,
       price: medicine?.price ?? "",
       status: medicine?.status ?? "ACTIVE"
     }
@@ -46,11 +61,11 @@ export function useMedicineForm(open: boolean, medicine: Medicine | null) {
       category: medicine?.category ?? "",
       unit: medicine?.unit ?? "",
       stockQty: medicine?.stockQty ?? 0,
-      reorderLevel: medicine?.reorderLevel ?? 0,
+      reorderLevel: medicine?.reorderLevel ?? defaultReorderLevel,
       price: medicine?.price ?? "",
       status: medicine?.status ?? "ACTIVE"
     });
-  }, [form, medicine, open]);
+  }, [defaultReorderLevel, form, medicine, open]);
 
   return form;
 }

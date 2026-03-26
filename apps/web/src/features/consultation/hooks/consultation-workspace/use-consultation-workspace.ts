@@ -1,8 +1,10 @@
+import { format } from "date-fns";
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/components/ui";
 import { useMe } from "@/hooks/use-me";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import { PatientService } from "@/services/patient.service";
 import { QueueService, type QueueEntry } from "@/services/queue.service";
 import {
@@ -12,16 +14,28 @@ import {
   sortByQueueAndPriority
 } from "@/features/consultation/utils/workspace.utils";
 
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
 export function useConsultationWorkspace() {
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
   const meQuery = useMe();
+  const settingsQuery = useTenantSettings();
+  const today = format(new Date(), "yyyy-MM-dd");
+  const autoRefreshMs = parsePositiveInt(settingsQuery.data?.queue.autoRefreshSeconds, 30) * 1000;
 
   const queueQuery = useQuery({
-    queryKey: ["queue", "ALL"],
-    queryFn: () => QueueService.list("ALL"),
-    refetchInterval: 30_000
+    queryKey: ["queue", "ALL", "consultation-workspace", today],
+    queryFn: () => QueueService.list("ALL", { date: today }),
+    refetchInterval: autoRefreshMs
   });
 
   const patientsQuery = useQuery({

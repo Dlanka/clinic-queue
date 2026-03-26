@@ -1,6 +1,7 @@
 import { differenceInMinutes, format } from "date-fns";
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Badge,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui";
 import type { QueueEntry } from "@/services/queue.service";
 import { formatDoctorDisplayName } from "@/utils/doctor-name";
+import { formatQueueTicket } from "@/utils/queue-ticket";
 import { statusTone } from "../hooks";
 import type { QueueStatusFilter } from "../store/queue.store";
 
@@ -38,6 +40,7 @@ interface QueueTableCardProps {
   canAddToQueue: boolean;
   canOperateQueue: boolean;
   actionBusy: boolean;
+  showWaitTimeEstimates: boolean;
   onSearch: (value: string) => void;
   onStatusChange: (value: QueueStatusFilter) => void;
   onRefresh: () => void;
@@ -72,7 +75,11 @@ function formatWaitDuration(fromDate: string) {
   return `${totalMinutes}m`;
 }
 
-function rowWaitLabel(row: QueueEntry) {
+function rowWaitLabel(row: QueueEntry, showWaitTimeEstimates: boolean) {
+  if (!showWaitTimeEstimates) {
+    return "-";
+  }
+
   if (row.status === "COMPLETED") {
     return "Done";
   }
@@ -94,6 +101,7 @@ export function QueueTableCard({
   canAddToQueue,
   canOperateQueue,
   actionBusy,
+  showWaitTimeEstimates,
   onSearch,
   onStatusChange,
   onRefresh,
@@ -101,6 +109,9 @@ export function QueueTableCard({
   onCancel,
   onOpenConsultation
 }: QueueTableCardProps) {
+  const settingsQuery = useTenantSettings();
+  const queueSettings = settingsQuery.data?.queue;
+
   const columns = useMemo<ColumnDef<QueueEntry>[]>(
     () => [
       {
@@ -111,7 +122,7 @@ export function QueueTableCard({
         maxSize: 92,
         cell: ({ row }) => (
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-subtle bg-neutral-40 text-sm font-semibold">
-            {row.original.queueNumber}
+            {formatQueueTicket(row.original.queueNumber, queueSettings)}
           </span>
         )
       },
@@ -161,7 +172,7 @@ export function QueueTableCard({
         maxSize: 140,
         cell: ({ row }) => (
           <Badge tone="success" size="sm" variant="capitalize" iconName="clock3">
-            {rowWaitLabel(row.original)}
+            {rowWaitLabel(row.original, showWaitTimeEstimates)}
           </Badge>
         )
       },
@@ -236,7 +247,16 @@ export function QueueTableCard({
         )
       }
     ],
-    [actionBusy, canAddToQueue, canOperateQueue, onCancel, onOpenConsultation, onStart]
+    [
+      actionBusy,
+      canAddToQueue,
+      canOperateQueue,
+      onCancel,
+      onOpenConsultation,
+      onStart,
+      queueSettings,
+      showWaitTimeEstimates
+    ]
   );
 
   return (
@@ -289,15 +309,6 @@ export function QueueTableCard({
     </Card>
   );
 }
-
-
-
-
-
-
-
-
-
 
 
 

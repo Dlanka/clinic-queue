@@ -31,17 +31,28 @@ const updateDoctorSchema = z
 
 const doctorRouter = Router();
 
-doctorRouter.use(requireAuth, requireRole("ADMIN"));
+doctorRouter.use(requireAuth);
 
-doctorRouter.get("/", DoctorController.list);
-doctorRouter.post("/", validateBody(createDoctorSchema), DoctorController.create);
-doctorRouter.get("/:id", validateParams(doctorIdParamsSchema), DoctorController.getById);
+doctorRouter.get("/", requireRole("ADMIN", "RECEPTION", "DOCTOR", "NURSE"), DoctorController.list);
+doctorRouter.post("/", requireRole("ADMIN"), validateBody(createDoctorSchema), DoctorController.create);
+doctorRouter.get(
+  "/:id",
+  requireRole("ADMIN", "RECEPTION", "DOCTOR", "NURSE"),
+  validateParams(doctorIdParamsSchema),
+  DoctorController.getById
+);
 doctorRouter.patch(
   "/:id",
+  requireRole("ADMIN"),
   validateParams(doctorIdParamsSchema),
   validateBody(updateDoctorSchema),
   DoctorController.update
 );
-doctorRouter.delete("/:id", validateParams(doctorIdParamsSchema), DoctorController.remove);
+doctorRouter.delete(
+  "/:id",
+  requireRole("ADMIN"),
+  validateParams(doctorIdParamsSchema),
+  DoctorController.remove
+);
 
 export { doctorRouter };

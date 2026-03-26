@@ -22,7 +22,7 @@ export function PatientsPageHeader({
     <PageHeader
       title={title}
       subtitle={`${subtitle} · ${patientCount} patient${patientCount === 1 ? "" : "s"} · ${format(new Date(), "MMM d, yyyy")}`}
-      iconName="user"
+      iconName="users"
       iconClassName="bg-primary-soft text-primary"
       action={
         hideCreateButton ? null : (

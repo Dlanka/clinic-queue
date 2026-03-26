@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Badge, Card, Input } from "@/components/ui";
+import { Avatar, Badge, Card, Input } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { Patient } from "@/services/patient.service";
 
@@ -11,17 +11,6 @@ type PatientsTableCardProps = {
   onSearch: (value: string) => void;
   onSelect: (patientId: string) => void;
 };
-
-function initialsFromName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return "NA";
-  }
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function genderLabel(value?: Patient["gender"]) {
   if (!value) {
@@ -47,7 +36,7 @@ export function PatientsTableCard({
         iconClassName="bg-tertiary-soft text-tertiary"
         className="border-b border-subtle"
       />
-      <Card.Body className="space-y-3 p-0">
+      <Card.Body className="scrollbar-thin-minimal space-y-3 p-0 xl:max-h-[calc(100vh-16rem)] xl:overflow-y-auto">
         <div className="px-4 pt-3">
           <Input
             value={searchTerm}
@@ -59,7 +48,7 @@ export function PatientsTableCard({
           />
         </div>
 
-        <div className="scrollbar-thin-minimal max-h-[60vh] space-y-0.5 overflow-y-auto border-t border-subtle">
+        <div className="space-y-0.5 border-t border-subtle">
           {isLoading ? (
             <p className="px-4 py-4 text-sm text-neutral-70">Loading patients...</p>
           ) : rows.length === 0 ? (
@@ -73,19 +62,17 @@ export function PatientsTableCard({
                   key={patient.id}
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-3 border-b border-subtle px-4 py-3 text-left transition-colors",
+                    "flex w-full items-center gap-3 border-b border-subtle px-4 py-3 text-left transition-colors cursor-pointer",
                     selected
-                      ? "border-l-2 border-l-primary bg-primary-soft/20"
-                      : "hover:bg-neutral-30/70"
+                      ? "border-l-0 border-l-primary bg-primary-soft/50"
+                      : "hover:bg-neutral-10/40"
                   )}
                   onClick={() => onSelect(patient.id)}
                 >
-                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft font-bold text-primary">
-                    {initialsFromName(patient.fullName)}
-                  </span>
+                  <Avatar name={patient.fullName} size="md" className="shrink-0" />
 
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base font-semibold text-neutral-95">
+                    <span className="block truncate text-sm font-semibold text-neutral-95">
                       {patient.fullName}
                     </span>
                     <span className="block truncate text-xs text-neutral-70">
@@ -106,7 +93,7 @@ export function PatientsTableCard({
           )}
         </div>
 
-        <div className="border-t border-subtle px-4 py-3">
+        <div className="px-4 py-3">
           <p className="text-xs text-neutral-70">
             {rows.length} patient{rows.length === 1 ? "" : "s"} ·{" "}
             {rows.every((row) => row.status === "ACTIVE") ? "All active" : "Mixed status"}

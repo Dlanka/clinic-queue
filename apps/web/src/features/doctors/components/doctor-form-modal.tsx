@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Controller } from "react-hook-form";
-import { Button, FieldGroup, Input, RightPanelModal, Select } from "@/components/ui";
+import { Button, CenterModal, FieldGroup, Input, Select } from "@/components/ui";
 import type { Doctor } from "@/services/doctor.service";
 import type { Member } from "@/services/member.service";
 import { useDoctorForm } from "../hooks";
@@ -78,14 +78,17 @@ export function DoctorFormModal({
   }, [doctor, doctorMembers, usedMemberEmails, usedMemberIds]);
 
   return (
-    <RightPanelModal
+    <CenterModal
       open={open}
       title={doctor ? "Edit Doctor" : "Create Doctor"}
       description={doctor ? "Update doctor details." : "Add a new doctor to this tenant."}
+      iconName="stethoscope"
+      variant="info"
       onClose={onClose}
+      className="max-w-120"
       footer={
         <>
-          <Button intent="ghost" onClick={onClose}>
+          <Button variant="outlined" intent="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="doctor-form" disabled={loading}>
@@ -180,7 +183,8 @@ export function DoctorFormModal({
           />
         </FieldGroup>
       </form>
-    </RightPanelModal>
+    </CenterModal>
   );
 }
+
 

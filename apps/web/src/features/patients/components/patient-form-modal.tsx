@@ -1,5 +1,5 @@
 import { Controller } from "react-hook-form";
-import { Button, FieldGroup, Input, RightPanelModal, Select } from "@/components/ui";
+import { Button, CenterModal, FieldGroup, Input, Select } from "@/components/ui";
 import type { Patient } from "@/services/patient.service";
 import { usePatientForm } from "../hooks";
 import type { PatientFormValues } from "../schemas/patient-form.schema";
@@ -22,14 +22,17 @@ export function PatientFormModal({
   const form = usePatientForm(open, patient);
 
   return (
-    <RightPanelModal
+    <CenterModal
       open={open}
       title={patient ? "Edit Patient" : "Create Patient"}
       description={patient ? "Update patient profile details." : "Add a new patient to this tenant."}
+      iconName="users"
+      variant="info"
       onClose={onClose}
+      className="max-w-120"
       footer={
         <>
-          <Button intent="ghost" onClick={onClose}>
+          <Button variant="outlined" intent="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="patient-form" disabled={loading}>
@@ -140,6 +143,7 @@ export function PatientFormModal({
           />
         </FieldGroup>
       </form>
-    </RightPanelModal>
+    </CenterModal>
   );
 }
+

@@ -55,6 +55,13 @@ prescriptionRouter.get(
   PrescriptionController.getById
 );
 
+prescriptionRouter.get(
+  "/prescriptions/:id/print",
+  requireRole("ADMIN", "PHARMACY_STAFF", "DOCTOR", "NURSE", "RECEPTION"),
+  validateParams(prescriptionIdParamsSchema),
+  PrescriptionController.print
+);
+
 prescriptionRouter.patch(
   "/prescriptions/:id",
   requireRole("ADMIN", "DOCTOR"),

@@ -1,12 +1,15 @@
 import { format } from "date-fns";
 import { Badge, Button, Card } from "@/components/ui";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import type { QueueEntry } from "@/services/queue.service";
+import { formatQueueTicket } from "@/utils/queue-ticket";
 
 interface RecentConsultationsCardProps {
   rows: QueueEntry[];
 }
 
 export function RecentConsultationsCard({ rows }: RecentConsultationsCardProps) {
+  const settingsQuery = useTenantSettings();
   return (
     <Card className="overflow-hidden ">
       <Card.Header
@@ -39,7 +42,7 @@ export function RecentConsultationsCard({ rows }: RecentConsultationsCardProps) 
                 </div>
 
                 <div className="mt-0.5 flex items-center justify-between gap-2">
-                  <p className="text-2xs text-neutral-70">Q-{entry.queueNumber}</p>
+                  <p className="text-2xs text-neutral-70">{formatQueueTicket(entry.queueNumber, settingsQuery.data?.queue)}</p>
                   <Badge tone="success" size="sm">
                     DONE
                   </Badge>
@@ -64,3 +67,5 @@ export function RecentConsultationsCard({ rows }: RecentConsultationsCardProps) 
     </Card>
   );
 }
+
+

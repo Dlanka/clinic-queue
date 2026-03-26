@@ -10,17 +10,26 @@ interface UseQueueDataParams {
   statusFilter: QueueStatusFilter;
   searchTerm: string;
   autoRefresh: boolean;
+  autoRefreshIntervalMs: number;
+  listAllDates: boolean;
   onCreateSuccess: () => void;
 }
 
-export function useQueueData({ statusFilter, searchTerm, autoRefresh, onCreateSuccess }: UseQueueDataParams) {
+export function useQueueData({
+  statusFilter,
+  searchTerm,
+  autoRefresh,
+  autoRefreshIntervalMs,
+  listAllDates,
+  onCreateSuccess
+}: UseQueueDataParams) {
   const toast = useToast();
   const queryClient = useQueryClient();
 
   const queueQuery = useQuery({
     queryKey: queueQueryKey,
-    queryFn: () => QueueService.list("ALL"),
-    refetchInterval: autoRefresh ? 30_000 : false
+    queryFn: () => QueueService.list("ALL", listAllDates ? { allDates: true } : undefined),
+    refetchInterval: autoRefresh ? autoRefreshIntervalMs : false
   });
 
   const doctorsQuery = useQuery({
@@ -172,3 +181,4 @@ export function statusTone(status: QueueStatus): "info" | "warning" | "success" 
 
   return "warning";
 }
+

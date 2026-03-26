@@ -3,15 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useToast } from "@/components/ui";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import { MedicineService } from "@/services/medicine.service";
 import { PatientService } from "@/services/patient.service";
 import { PrescriptionService } from "@/services/prescription.service";
 import { QueueService } from "@/services/queue.service";
 import { VisitService } from "@/services/visit.service";
-import {
-  type ConsultationValues,
-  validateCompleteConsultation
-} from "@/features/queue/schemas/consultation.schema";
+import { type ConsultationValues } from "@/features/queue/schemas/consultation.schema";
 import {
   buildVisitPayload,
   consultationResolver,
@@ -35,6 +33,7 @@ export function useConsultationDetail({
   const autoStartAttempted = useRef(false);
   const [activeTab, setActiveTab] = useState<"clinical" | "prescription">("clinical");
   const [now, setNow] = useState(() => Date.now());
+  const settingsQuery = useTenantSettings();
 
   const form = useForm<ConsultationValues>({
     resolver: consultationResolver,
@@ -275,8 +274,26 @@ export function useConsultationDetail({
     return () => window.clearInterval(timer);
   }, [queueEntryQuery.data]);
 
+  const clinicalSettings = settingsQuery.data?.clinical;
   const queueStatus = queueEntryQuery.data?.status;
-  const canAmendCompleted = amendMode && queueStatus === "COMPLETED";
+  const completedAtTime = queueEntryQuery.data?.completedAt
+    ? new Date(queueEntryQuery.data.completedAt).getTime()
+    : Number.NaN;
+  const editWindowHours = Number.parseInt(clinicalSettings?.editWindowAfterCompletionHours ?? "24", 10);
+  const effectiveEditWindowHours =
+    Number.isFinite(editWindowHours) && editWindowHours >= 0 ? editWindowHours : 24;
+  const isEditWindowActive =
+    queueStatus === "COMPLETED" &&
+    clinicalSettings?.lockConsultationAfterCompletion &&
+    !Number.isNaN(completedAtTime) &&
+    Date.now() <= completedAtTime + effectiveEditWindowHours * 60 * 60 * 1000;
+
+  const canAmendCompleted =
+    amendMode &&
+    queueStatus === "COMPLETED" &&
+    (!clinicalSettings?.lockConsultationAfterCompletion ||
+      (effectiveEditWindowHours > 0 && isEditWindowActive));
+
   const readOnly = queueStatus === "CANCELLED" || (queueStatus === "COMPLETED" && !canAmendCompleted);
   const showCompleteAction = !canAmendCompleted;
 
@@ -367,9 +384,20 @@ export function useConsultationDetail({
       return;
     }
 
-    const validationMessage = validateCompleteConsultation(values);
-    if (validationMessage) {
-      toast.error("Cannot complete consultation", validationMessage);
+    const diagnosis = values.diagnosis?.trim();
+    const symptoms = values.symptoms?.trim();
+    const notes = values.notes?.trim();
+
+    if ((clinicalSettings?.diagnosisRequiredToComplete ?? true) && !diagnosis) {
+      toast.error("Cannot complete consultation", "Diagnosis is required to complete consultation.");
+      return;
+    }
+
+    if ((clinicalSettings?.symptomsRequired ?? true) && !symptoms && !notes) {
+      toast.error(
+        "Cannot complete consultation",
+        "Add at least symptoms or notes before completing consultation."
+      );
       return;
     }
 
@@ -420,3 +448,5 @@ export function useConsultationDetail({
     backLabel: backTo === "/queue" ? "Back to Queue" : "Back to Consultation"
   };
 }
+
+

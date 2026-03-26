@@ -3,6 +3,8 @@ export interface AuthContext {
   memberId: string;
   tenantId: string;
   roles: string[];
+  sessionId: string;
+  refreshTokenId: string;
 }
 
 export interface TokenPayload extends AuthContext {

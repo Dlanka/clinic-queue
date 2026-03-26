@@ -11,6 +11,7 @@ import {
 } from "./context/prescriptions-page.context";
 import { usePrescriptionsData } from "./hooks";
 import { useMe } from "@/hooks/use-me";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import { useNavigate } from "@tanstack/react-router";
 import type { Prescription } from "@/services/prescription.service";
 
@@ -25,20 +26,28 @@ export function PrescriptionsPage() {
 function PrescriptionsPageContent() {
   const navigate = useNavigate();
   const meQuery = useMe();
+  const settingsQuery = useTenantSettings();
   const { selectedStatus, setStatus } = usePrescriptionsPageContext();
+  const [selectedDateFilter, setSelectedDateFilter] = useState<"TODAY" | "ALL" | string>("TODAY");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
-  const { allRows, rows, counts, prescriptionsQuery, dispenseMutation } = usePrescriptionsData({
-    selectedStatus,
-    searchTerm
-  });
+  const { allRows, rows, dateFilterOptions, counts, prescriptionsQuery, dispenseMutation } =
+    usePrescriptionsData({
+      selectedStatus,
+      selectedDateFilter,
+      searchTerm
+    });
   const roles = meQuery.data?.member.roles ?? [];
+  const pharmacySettings = settingsQuery.data?.pharmacy;
   const canEditConsultation = roles.includes("DOCTOR") || roles.includes("ADMIN");
+  const canDispense = roles.includes("PHARMACY_STAFF") || roles.includes("ADMIN");
+  const canPrint = canDispense;
+  const canEditPrescribed = pharmacySettings?.allowEditBeforeDispense ?? true;
+  const canEditDispensed = pharmacySettings?.allowEditAfterDispense ?? false;
 
   const handleDispense = async (prescriptionId: string) => {
     try {
       await dispenseMutation.mutateAsync(prescriptionId);
-      setSelectedPrescription(null);
     } catch {
       // toast handled by mutation onError
     }
@@ -54,11 +63,16 @@ function PrescriptionsPageContent() {
         allRows={allRows}
         rows={rows}
         selectedStatus={selectedStatus}
+        selectedDateFilter={selectedDateFilter}
+        dateFilterOptions={dateFilterOptions}
         searchTerm={searchTerm}
         isLoading={prescriptionsQuery.isLoading}
         canEditConsultation={canEditConsultation}
+        canEditPrescribed={canEditPrescribed}
+        canEditDispensed={canEditDispensed}
         dataUpdatedAt={prescriptionsQuery.dataUpdatedAt}
         onStatusChange={setStatus}
+        onDateFilterChange={setSelectedDateFilter}
         onSearch={setSearchTerm}
         onRefresh={() => prescriptionsQuery.refetch()}
         onViewDetails={setSelectedPrescription}
@@ -75,6 +89,8 @@ function PrescriptionsPageContent() {
         open={Boolean(selectedPrescription)}
         prescription={selectedPrescription}
         dispensing={dispenseMutation.isPending}
+        canDispense={canDispense}
+        canPrint={canPrint}
         onClose={() => setSelectedPrescription(null)}
         onDispense={handleDispense}
       />

@@ -1,9 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { iconMap, type IconName } from "@/config/icons";
 import { cn } from "@/lib/cn";
 import { IconButton } from "../icon-button";
 import { rightPanelModalStyles } from "./right-panel-modal.tv";
+
+type RightPanelModalVariant = "info" | "success" | "warning" | "danger";
 
 type RightPanelModalProps = {
   open: boolean;
@@ -12,6 +15,8 @@ type RightPanelModalProps = {
   headerContent?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  iconName?: IconName;
+  variant?: RightPanelModalVariant;
   onClose: () => void;
   panelClassName?: string;
 };
@@ -23,11 +28,14 @@ export function RightPanelModal({
   headerContent,
   children,
   footer,
+  iconName = "clipboardList",
+  variant = "info",
   onClose,
   panelClassName
 }: RightPanelModalProps) {
   const [host, setHost] = useState<HTMLElement | null>(null);
-  const styles = rightPanelModalStyles();
+  const styles = rightPanelModalStyles({ variant });
+  const HeaderIcon = iconMap[iconName];
 
   useEffect(() => {
     if (!open) {
@@ -97,10 +105,15 @@ export function RightPanelModal({
             transition={{ duration: 0.2 }}
           >
             <header className={styles.header()}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className={styles.title()}>{title}</h2>
-                  {description ? <p className={styles.description()}>{description}</p> : null}
+              <div className={styles.headerTop()}>
+                <div className={styles.heading()}>
+                  <span className={styles.iconWrap()}>
+                    <HeaderIcon size={20} />
+                  </span>
+                  <div>
+                    <h2 className={styles.title()}>{title}</h2>
+                    {description ? <p className={styles.description()}>{description}</p> : null}
+                  </div>
                 </div>
                 <IconButton iconName="x" aria-label="Close panel" onClick={onClose} />
               </div>

@@ -72,6 +72,30 @@ export const PrescriptionController = {
     }
   }) as RequestHandler,
 
+  print: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const paperWidthMmRaw = req.query.paperWidthMm as string | undefined;
+      const paperWidthMm = paperWidthMmRaw === "58" ? 58 : 80;
+      const prescriptionId = String(req.params.id);
+      const pdfBuffer = await PrescriptionService.generatePrintPdf(req.auth.tenantId, prescriptionId, {
+        paperWidthMm
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="prescription-${prescriptionId.slice(-6).toUpperCase()}.pdf"`
+      );
+      return res.status(200).send(pdfBuffer);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
   dispense: (async (req, res, next) => {
     try {
       if (!req.auth) {

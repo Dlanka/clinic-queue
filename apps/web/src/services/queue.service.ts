@@ -29,6 +29,7 @@ export interface CreateQueueEntryPayload {
 export interface QueueListFilters {
   date?: string;
   doctorId?: string;
+  allDates?: boolean;
 }
 
 export class QueueService {
@@ -45,6 +46,10 @@ export class QueueService {
 
     if (filters?.doctorId) {
       params.doctorId = filters.doctorId;
+    }
+
+    if (filters?.allDates) {
+      params.allDates = "1";
     }
 
     const query = Object.keys(params).length > 0 ? { params } : undefined;

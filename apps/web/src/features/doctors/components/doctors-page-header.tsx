@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui";
+import { format } from "date-fns";
+import { Button, PageHeader } from "@/components/ui";
 
 type DoctorsPageHeaderProps = {
   onCreate: () => void;
@@ -6,14 +7,16 @@ type DoctorsPageHeaderProps = {
 
 export function DoctorsPageHeader({ onCreate }: DoctorsPageHeaderProps) {
   return (
-    <section className="flex items-center justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-extrabold text-neutral-95">Doctors</h1>
-        <p className="text-sm text-neutral-80">Manage tenant doctors and their specialties.</p>
-      </div>
-      <Button startIconName="plus" onClick={onCreate}>
-        New Doctor
-      </Button>
-    </section>
+    <PageHeader
+      title="Doctors"
+      subtitle={`Manage tenant doctors and their specialties · ${format(new Date(), "MMM d, yyyy")}`}
+      iconName="stethoscope"
+      iconClassName="bg-primary-soft text-primary"
+      action={
+        <Button startIconName="plus" onClick={onCreate}>
+          New Doctor
+        </Button>
+      }
+    />
   );
 }

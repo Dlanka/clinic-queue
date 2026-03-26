@@ -1,13 +1,14 @@
-﻿import { Activity } from "lucide-react";
-import { Avatar, Button, Chip, IconButton, Input } from "../ui";
+import { Activity } from "lucide-react";
+import { Avatar, Chip, IconButton, Input } from "../ui";
 
 interface ToolbarProps {
   onOpenMenu: () => void;
-  onLogout: () => void;
-  logoutPending?: boolean;
+  onOpenProfile: () => void;
+  profileLabel: string;
+  tenantName: string;
 }
 
-export function Toolbar({ onOpenMenu, onLogout, logoutPending = false }: ToolbarProps) {
+export function Toolbar({ onOpenMenu, onOpenProfile, profileLabel, tenantName }: ToolbarProps) {
   return (
     <header className="fixed inset-x-0 top-0 z-30 flex h-toolbar items-center gap-3 bg-neutral-20 px-0 pr-3 backdrop-blur-sm md:pr-6">
       <div className="flex h-toolbar w-sidebar-collapsed items-center justify-center">
@@ -25,13 +26,16 @@ export function Toolbar({ onOpenMenu, onLogout, logoutPending = false }: Toolbar
           startIconName="search"
           shortcutKey="Ctrl+K"
         />
-        <Chip tone="tertiary" label="Demo Clinic" iconName="home" />
+        <Chip tone="tertiary" label={tenantName} iconName="home" />
         <Chip tone="success" withDot label="Online" />
         <IconButton iconName="bell" aria-label="Notifications" />
-        <Button intent="ghost" size="sm" onClick={onLogout} disabled={logoutPending}>
-          Logout
-        </Button>
-        <Avatar label="AD" aria-label="Open account" />
+        <Avatar
+          as="button"
+          label={profileLabel}
+          size="sm"
+          aria-label="Open profile"
+          onClick={onOpenProfile}
+        />
       </div>
 
       <div className="ml-auto md:hidden">

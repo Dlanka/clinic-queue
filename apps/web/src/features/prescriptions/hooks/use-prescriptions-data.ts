@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { format, isToday } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui";
 import { PrescriptionService } from "@/services/prescription.service";
@@ -6,10 +7,15 @@ import { prescriptionsQueryKey } from "../store/prescriptions.store";
 
 type UsePrescriptionsDataParams = {
   selectedStatus: "ALL" | "PRESCRIBED" | "DISPENSED";
+  selectedDateFilter: "TODAY" | "ALL" | string;
   searchTerm: string;
 };
 
-export function usePrescriptionsData({ selectedStatus, searchTerm }: UsePrescriptionsDataParams) {
+export function usePrescriptionsData({
+  selectedStatus,
+  selectedDateFilter,
+  searchTerm
+}: UsePrescriptionsDataParams) {
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -35,6 +41,18 @@ export function usePrescriptionsData({ selectedStatus, searchTerm }: UsePrescrip
   const rows = useMemo(
     () =>
       allRows.filter((row) => {
+        if (selectedDateFilter === "TODAY" && !isToday(new Date(row.createdAt))) {
+          return false;
+        }
+
+        if (
+          selectedDateFilter !== "TODAY" &&
+          selectedDateFilter !== "ALL" &&
+          format(new Date(row.createdAt), "yyyy-MM-dd") !== selectedDateFilter
+        ) {
+          return false;
+        }
+
         if (selectedStatus !== "ALL" && row.status !== selectedStatus) {
           return false;
         }
@@ -49,8 +67,36 @@ export function usePrescriptionsData({ selectedStatus, searchTerm }: UsePrescrip
           row.id.toLowerCase().includes(normalizedTerm)
         );
       }),
-    [allRows, normalizedTerm, selectedStatus]
+    [allRows, normalizedTerm, selectedDateFilter, selectedStatus]
   );
+
+  const dateFilterOptions = useMemo(() => {
+    const todayValue = format(new Date(), "yyyy-MM-dd");
+    const pendingByDate = new Map<string, number>();
+
+    for (const row of allRows) {
+      if (row.status !== "PRESCRIBED") {
+        continue;
+      }
+
+      const dateValue = format(new Date(row.createdAt), "yyyy-MM-dd");
+      pendingByDate.set(dateValue, (pendingByDate.get(dateValue) ?? 0) + 1);
+    }
+
+    const otherPendingDates = Array.from(pendingByDate.entries())
+      .filter(([dateValue]) => dateValue !== todayValue)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([dateValue, count]) => ({
+        value: dateValue,
+        label: `${format(new Date(dateValue), "MMM d, yyyy")} (${count} pending)`
+      }));
+
+    return [
+      { value: "TODAY", label: "Today" },
+      { value: "ALL", label: "All Dates" },
+      ...otherPendingDates
+    ];
+  }, [allRows]);
 
   const counts = useMemo(
     () => ({
@@ -65,6 +111,7 @@ export function usePrescriptionsData({ selectedStatus, searchTerm }: UsePrescrip
   return {
     allRows,
     rows,
+    dateFilterOptions,
     counts,
     prescriptionsQuery,
     dispenseMutation

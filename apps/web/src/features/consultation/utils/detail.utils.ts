@@ -88,12 +88,3 @@ export function formatGenderLabel(gender?: string) {
 
   return gender.charAt(0) + gender.slice(1).toLowerCase();
 }
-
-export function initialsFromLabel(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}

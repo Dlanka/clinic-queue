@@ -1,5 +1,5 @@
 import { Controller } from "react-hook-form";
-import { Button, FieldGroup, Input, RightPanelModal, Select, Textarea } from "@/components/ui";
+import { Button, CenterModal, FieldGroup, Input, Select, Textarea } from "@/components/ui";
 import type { Appointment } from "@/services/appointment.service";
 import type { AppointmentFormValues } from "../schemas/appointment-form.schema";
 import { useAppointmentForm } from "../hooks";
@@ -30,16 +30,19 @@ export function AppointmentFormModal({
   const form = useAppointmentForm(open, appointment);
 
   return (
-    <RightPanelModal
+    <CenterModal
       open={open}
       title={appointment ? "Edit Appointment" : "Create Appointment"}
       description={
         appointment ? "Update appointment status or schedule." : "Set patient, doctor and appointment date."
       }
+      iconName="calendarClock"
+      variant="info"
       onClose={onClose}
+      className="max-w-120"
       footer={
         <>
-          <Button intent="ghost" onClick={onClose}>
+          <Button variant="outlined" intent="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="appointment-form" disabled={loading}>
@@ -125,6 +128,8 @@ export function AppointmentFormModal({
           <Textarea id="appointment-notes" rows={4} {...form.register("notes")} />
         </FieldGroup>
       </form>
-    </RightPanelModal>
+    </CenterModal>
   );
 }
+
+

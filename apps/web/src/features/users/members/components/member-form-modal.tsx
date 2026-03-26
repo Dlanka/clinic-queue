@@ -1,7 +1,7 @@
 import type { MultiValue } from "react-select";
 import { Controller } from "react-hook-form";
 import type { AppRole } from "@/config/roles";
-import { Button, FieldGroup, Input, RightPanelModal, Select } from "@/components/ui";
+import { Button, CenterModal, FieldGroup, Input, Select } from "@/components/ui";
 import type { Member } from "@/services/member.service";
 import { useMemberForm } from "../hooks/use-member-form";
 import type { MemberFormValues } from "../schemas/member-form.schema";
@@ -25,14 +25,17 @@ export function MemberFormModal({
   const form = useMemberForm(open, member);
 
   return (
-    <RightPanelModal
+    <CenterModal
       open={open}
       title={member ? "Edit Member" : "Create Member"}
       description={member ? "Update role assignments and status." : "Add a new tenant member."}
+      iconName="shieldPlus"
+      variant="info"
       onClose={onClose}
+      className="max-w-120"
       footer={
         <>
-          <Button intent="ghost" onClick={onClose}>
+          <Button variant="outlined" intent="neutral" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" form="member-form" disabled={loading}>
@@ -104,6 +107,7 @@ export function MemberFormModal({
           />
         </FieldGroup>
       </form>
-    </RightPanelModal>
+    </CenterModal>
   );
 }
+

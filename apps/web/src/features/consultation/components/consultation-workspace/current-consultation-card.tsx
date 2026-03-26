@@ -1,9 +1,11 @@
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Avatar, Badge, Button, Card } from "@/components/ui";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import { iconMap } from "@/config/icons";
 import type { PatientGender } from "@/services/patient.service";
 import type { QueueEntry } from "@/services/queue.service";
+import { formatQueueTicket } from "@/utils/queue-ticket";
 
 interface CurrentConsultationCardProps {
   entry: QueueEntry | null;
@@ -19,6 +21,7 @@ export function CurrentConsultationCard({
   onContinue
 }: CurrentConsultationCardProps) {
   const ClockIcon = iconMap.clock3;
+  const settingsQuery = useTenantSettings();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -70,9 +73,11 @@ export function CurrentConsultationCard({
       ) : (
         <Card.Body className="flex flex-wrap items-center justify-between gap-4 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-base font-bold text-primary">
-              {entry.patientName.slice(0, 2).toUpperCase()}
-            </span>
+            <Avatar
+              name={entry.patientName}
+              size="lg"
+              className="size-11 shrink-0 rounded-lg text-base"
+            />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
                 <p className="truncate text-base font-bold text-neutral-90">{entry.patientName}</p>
@@ -81,7 +86,7 @@ export function CurrentConsultationCard({
                 </Badge>
               </div>
               <p className="truncate text-xs font-bold text-neutral-70 inline-flex gap-3 leading-tight items-center">
-                <span className="flex ">Queue #{entry.queueNumber}</span>
+                <span className="flex ">{formatQueueTicket(entry.queueNumber, settingsQuery.data?.queue)}</span>
                 <span className="inline-flex items-center gap-1">
                   <ClockIcon size={12} />
                   Started{" "}
@@ -105,3 +110,5 @@ export function CurrentConsultationCard({
     </Card>
   );
 }
+
+

@@ -1,8 +1,8 @@
-import type { UseFormRegister } from "react-hook-form";
+﻿import type { UseFormRegister } from "react-hook-form";
 import { Badge, Card, FieldGroup, SectionDivider, Textarea } from "@/components/ui";
 import { iconMap } from "@/config/icons";
 import type { ConsultationValues } from "@/features/queue/schemas/consultation.schema";
-import { VitalMetricCard } from "./vital-metric-card";
+import { VitalMetricCard } from "@/components/ui/vital-metric-card";
 
 interface ConsultationFormCardProps {
   register: UseFormRegister<ConsultationValues>;
@@ -146,3 +146,4 @@ export function ConsultationFormCard({ register, readOnly }: ConsultationFormCar
     </Card>
   );
 }
+

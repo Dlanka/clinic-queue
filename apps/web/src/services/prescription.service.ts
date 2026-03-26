@@ -72,4 +72,12 @@ export class PrescriptionService {
     const { data } = await http.patch<{ prescription: Prescription }>(`/prescriptions/${id}/dispense`);
     return data.prescription;
   }
+
+  static async print(id: string, paperWidthMm: 58 | 80 = 80) {
+    const { data } = await http.get<Blob>(`/prescriptions/${id}/print`, {
+      responseType: "blob",
+      params: { paperWidthMm }
+    });
+    return data;
+  }
 }

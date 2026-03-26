@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Badge, PageHeader } from "@/components/ui";
+import { Avatar, Badge, PageHeader } from "@/components/ui";
 import { CurrentConsultationCard } from "../components/consultation-workspace/current-consultation-card";
 import { RecentConsultationsCard } from "../components/consultation-workspace/recent-consultations-card";
 import { WaitingPatientsList } from "../components/consultation-workspace/waiting-patients-list";
@@ -21,12 +21,15 @@ export function ConsultationWorkspacePage() {
       <PageHeader
         title="Consultation"
         subtitle={`Today's patients and active consultation - ${format(new Date(), "MMM d, yyyy")}`}
-        iconName="activity"
+        iconName="stethoscope"
         action={
           <div className="inline-flex items-center gap-2 rounded-full border border-subtle px-3 py-2">
-            <span className="inline-flex size-7 items-center justify-center rounded-full bg-primary-soft text-2xs font-bold text-primary">
-              {workspace.doctorInitials}
-            </span>
+            <Avatar
+              name={workspace.doctorDisplayName}
+              label={workspace.doctorInitials}
+              size="sm"
+              className="size-7 text-2xs"
+            />
             <div className="leading-tight space-y-0.5">
               <p className="text-xs font-semibold text-neutral-95">{workspace.doctorDisplayName}</p>
               <p className="text-2xs text-neutral-70">Doctor Workspace</p>

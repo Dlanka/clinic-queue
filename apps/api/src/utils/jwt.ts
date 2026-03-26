@@ -8,7 +8,9 @@ function normalizePayload(payload: TokenPayload): AuthContext {
     accountId: payload.accountId,
     memberId: payload.memberId,
     tenantId: payload.tenantId,
-    roles: payload.roles
+    roles: payload.roles,
+    sessionId: payload.sessionId,
+    refreshTokenId: payload.refreshTokenId
   };
 }
 
@@ -19,7 +21,9 @@ export function signAccessToken(auth: AuthContext) {
       accountId: auth.accountId,
       memberId: auth.memberId,
       tenantId: auth.tenantId,
-      roles: auth.roles
+      roles: auth.roles,
+      sessionId: auth.sessionId,
+      refreshTokenId: auth.refreshTokenId
     },
     env.JWT_ACCESS_SECRET,
     { expiresIn: env.JWT_ACCESS_TTL as StringValue }
@@ -33,7 +37,9 @@ export function signRefreshToken(auth: AuthContext) {
       accountId: auth.accountId,
       memberId: auth.memberId,
       tenantId: auth.tenantId,
-      roles: auth.roles
+      roles: auth.roles,
+      sessionId: auth.sessionId,
+      refreshTokenId: auth.refreshTokenId
     },
     env.JWT_REFRESH_SECRET,
     { expiresIn: env.JWT_REFRESH_TTL as StringValue }

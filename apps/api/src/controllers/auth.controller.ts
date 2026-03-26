@@ -102,8 +102,13 @@ export const AuthController = {
     }
   }) as RequestHandler,
 
-  logout: (async (_req, res, next) => {
+  logout: (async (req, res, next) => {
     try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      await AuthService.logout(req.auth);
       clearSessionCookies(res);
       return res.status(200).json({ ok: true });
     } catch (error) {
@@ -119,6 +124,91 @@ export const AuthController = {
 
       const session = await AuthService.me(req.auth);
       return res.status(200).json(session);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  updateMe: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await AuthService.updateProfile(req.auth, {
+        name: req.body.name
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  updatePreferences: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await AuthService.updatePreferences(req.auth, req.body);
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  sessions: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const sessions = await AuthService.listSessions(req.auth);
+      return res.status(200).json({ sessions });
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  revokeSession: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await AuthService.revokeSession(req.auth, String(req.params.sessionId));
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  revokeOtherSessions: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await AuthService.revokeOtherSessions(req.auth);
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }) as RequestHandler,
+
+  changePassword: (async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new HttpError(401, "Unauthenticated");
+      }
+
+      const result = await AuthService.changePassword(req.auth, {
+        currentPassword: req.body.currentPassword,
+        newPassword: req.body.newPassword
+      });
+
+      return res.status(200).json(result);
     } catch (error) {
       return next(error);
     }

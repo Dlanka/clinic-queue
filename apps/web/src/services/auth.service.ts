@@ -10,6 +10,15 @@ export interface SessionMe {
     id: string;
     email: string;
     name: string;
+    preferences: {
+      language: string;
+      timezone: string;
+      dateFormat: string;
+      timeFormat: string;
+      emailNotifications: boolean;
+      inAppNotifications: boolean;
+    };
+    passwordChangedAt: string | null;
   };
   tenant: {
     id: string;
@@ -19,6 +28,32 @@ export interface SessionMe {
     id: string;
     roles: string[];
   };
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+}
+
+export interface UpdatePreferencesPayload {
+  language: string;
+  timezone: string;
+  dateFormat: string;
+  timeFormat: string;
+  emailNotifications: boolean;
+  inAppNotifications: boolean;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthSessionItem {
+  sessionId: string;
+  lastSeenAt: string;
+  createdAt: string;
+  isCurrent: boolean;
 }
 
 export type LoginResponse =
@@ -57,6 +92,40 @@ export class AuthService {
 
   static async me() {
     const { data } = await http.get<SessionMe>("/auth/me");
+    return data;
+  }
+
+  static async updateProfile(payload: UpdateProfilePayload) {
+    const { data } = await http.patch<{
+      account: { id: string; email: string; name: string };
+    }>("/auth/me", payload);
+    return data;
+  }
+
+  static async changePassword(payload: ChangePasswordPayload) {
+    const { data } = await http.post<{ ok: boolean }>("/auth/change-password", payload);
+    return data;
+  }
+
+  static async updatePreferences(payload: UpdatePreferencesPayload) {
+    const { data } = await http.patch<{
+      preferences: UpdatePreferencesPayload;
+    }>("/auth/preferences", payload);
+    return data;
+  }
+
+  static async sessions() {
+    const { data } = await http.get<{ sessions: AuthSessionItem[] }>("/auth/sessions");
+    return data;
+  }
+
+  static async revokeSession(sessionId: string) {
+    const { data } = await http.delete<{ ok: boolean }>(`/auth/sessions/${sessionId}`);
+    return data;
+  }
+
+  static async revokeOtherSessions() {
+    const { data } = await http.post<{ ok: boolean }>("/auth/sessions/revoke-others");
     return data;
   }
 }

@@ -227,20 +227,15 @@ body {
   }
 
   .sidebar-group-divider {
-    opacity: 0;
-    max-height: 0;
-    margin-block: 0;
+    opacity: 1;
+    max-height: 1px;
+    margin-block: 0.75rem;
     overflow: hidden;
-    transition:
-      opacity 0.15s 0.05s,
-      max-height 0.2s,
-      margin 0.2s;
+    transition: opacity 0.15s 0.05s;
   }
 
   .sidebar:hover .sidebar-group-divider {
     opacity: 1;
-    max-height: 1px;
-    margin-block: 0.75rem;
   }
 
   .nav-item {
@@ -258,10 +253,6 @@ body {
 
   .sidebar:not(:hover) .nav-item-icon {
     margin-inline: auto;
-  }
-
-  .sidebar:not(:hover) .sidebar-nav-list {
-    gap: 0.625rem;
   }
 
   .nav-item-label,

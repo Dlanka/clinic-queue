@@ -5,8 +5,10 @@ import {
   Card,
   FilterChipGroup,
   Input,
+  Select,
   Table,
-  TableCardFooter
+  TableCardFooter,
+  type SelectOption
 } from "@/components/ui";
 import { formatDoctorDisplayName } from "@/utils/doctor-name";
 import type { Prescription } from "@/services/prescription.service";
@@ -15,10 +17,15 @@ type PrescriptionsTableCardProps = {
   rows: Prescription[];
   allRows: Prescription[];
   selectedStatus: "ALL" | "PRESCRIBED" | "DISPENSED";
+  selectedDateFilter: "TODAY" | "ALL" | string;
+  dateFilterOptions: SelectOption[];
   searchTerm: string;
   isLoading: boolean;
   canEditConsultation: boolean;
+  canEditPrescribed: boolean;
+  canEditDispensed: boolean;
   onStatusChange: (status: "ALL" | "PRESCRIBED" | "DISPENSED") => void;
+  onDateFilterChange: (value: "TODAY" | "ALL" | string) => void;
   onSearch: (value: string) => void;
   onRefresh: () => void;
   onViewDetails: (prescription: Prescription) => void;
@@ -40,10 +47,15 @@ export function PrescriptionsTableCard({
   rows,
   allRows,
   selectedStatus,
+  selectedDateFilter,
+  dateFilterOptions,
   searchTerm,
   isLoading,
   canEditConsultation,
+  canEditPrescribed,
+  canEditDispensed,
   onStatusChange,
+  onDateFilterChange,
   onSearch,
   onRefresh,
   onViewDetails,
@@ -82,15 +94,28 @@ export function PrescriptionsTableCard({
             }))}
           />
 
-          <Input
-            value={searchTerm}
-            onChange={(event) => onSearch(event.target.value)}
-            placeholder="Search patient..."
-            rounded="full"
-            size="sm"
-            startIconName="search"
-            containerClassName="w-full md:w-56"
-          />
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
+            <div className="w-full md:w-52">
+              <Select
+                inputId="prescriptions-date-filter"
+                options={dateFilterOptions}
+                value={
+                  dateFilterOptions.find((option) => option.value === selectedDateFilter) ??
+                  dateFilterOptions[0]
+                }
+                onChange={(nextValue) => onDateFilterChange(nextValue?.value ?? "TODAY")}
+              />
+            </div>
+            <Input
+              value={searchTerm}
+              onChange={(event) => onSearch(event.target.value)}
+              placeholder="Search patient..."
+              rounded="full"
+              size="sm"
+              startIconName="search"
+              containerClassName="w-full md:w-56"
+            />
+          </div>
         </div>
 
         <div className="-mt-px">
@@ -153,30 +178,39 @@ export function PrescriptionsTableCard({
                 key: "actions",
                 headerClassName: "text-right",
                 header: "Actions",
-                render: (row) => (
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outlined"
-                      intent="neutral"
-                      startIconName="list"
-                      onClick={() => onViewDetails(row)}
-                    >
-                      View
-                    </Button>
-                    {canEditConsultation && row.status !== "DISPENSED" && row.queueEntryId ? (
+                render: (row) => {
+                  const canEditRow =
+                    canEditConsultation &&
+                    row.queueEntryId &&
+                    ((row.status === "PRESCRIBED" && canEditPrescribed) ||
+                      (row.status === "DISPENSED" && canEditDispensed));
+
+                  return (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {canEditRow ? (
+                        <Button
+                          size="sm"
+                          variant="tonal"
+                          intent="info"
+                          startIconName="squarePen"
+                          onClick={() => onEditConsultation(row.queueEntryId!)}
+                        >
+                          Edit
+                        </Button>
+                      ) : null}
+
                       <Button
                         size="sm"
-                        variant="tonal"
-                        intent="info"
-                        startIconName="squarePen"
-                        onClick={() => onEditConsultation(row.queueEntryId!)}
+                        variant="outlined"
+                        intent="neutral"
+                        startIconName="list"
+                        onClick={() => onViewDetails(row)}
                       >
-                        Edit
+                        View
                       </Button>
-                    ) : null}
-                  </div>
-                )
+                    </div>
+                  );
+                }
               }
             ]}
             rows={rows}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/components/ui";
 import { useMe } from "@/hooks/use-me";
+import { useTenantSettings } from "@/hooks/use-tenant-settings";
 import type { Patient } from "@/services/patient.service";
 import { QueueFormModal, QueuePageHeader, QueueStatsGrid, QueueTableCard } from "./components";
 import { QueuePageProvider, useQueuePageContext } from "./context/queue-page.context";
@@ -21,6 +22,15 @@ function normalizePhone(value: string | undefined) {
   return (value ?? "").replace(/\D/g, "");
 }
 
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
 export function QueuePage() {
   return (
     <QueuePageProvider>
@@ -34,11 +44,18 @@ function QueuePageContent() {
   const toast = useToast();
   const navigate = useNavigate();
   const meQuery = useMe();
+  const settingsQuery = useTenantSettings();
 
   const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [autoRefresh] = useState(true);
   const [duplicatePatients, setDuplicatePatients] = useState<Patient[]>([]);
+
+  const queueSettings = settingsQuery.data?.queue;
+  const autoRefreshIntervalSeconds = parsePositiveInt(queueSettings?.autoRefreshSeconds, 30);
+  const defaultFilterToToday = queueSettings?.defaultFilterToToday ?? true;
+  const allowPriorityQueueEntries = queueSettings?.allowPriorityQueueEntries ?? true;
+  const showWaitTimeEstimates = queueSettings?.showWaitTimeEstimates ?? false;
 
   const {
     queueQuery,
@@ -57,6 +74,8 @@ function QueuePageContent() {
     statusFilter,
     searchTerm,
     autoRefresh,
+    autoRefreshIntervalMs: autoRefreshIntervalSeconds * 1000,
+    listAllDates: !defaultFilterToToday,
     onCreateSuccess: closeModal
   });
 
@@ -84,7 +103,7 @@ function QueuePageContent() {
       patientId,
       doctorId,
       notes,
-      isPriority
+      isPriority: allowPriorityQueueEntries ? isPriority : false
     });
   };
 
@@ -143,6 +162,7 @@ function QueuePageContent() {
     <div className="space-y-4 md:space-y-5">
       <QueuePageHeader
         autoRefresh={autoRefresh}
+        autoRefreshIntervalSeconds={autoRefreshIntervalSeconds}
         canAddToQueue={canAddToQueue}
         onCreate={openCreateModal}
       />
@@ -159,6 +179,7 @@ function QueuePageContent() {
         canAddToQueue={canAddToQueue}
         canOperateQueue={canOperateQueue}
         actionBusy={actionBusy}
+        showWaitTimeEstimates={showWaitTimeEstimates}
         onSearch={setSearchTerm}
         onStatusChange={setStatusFilter}
         onRefresh={() => queueQuery.refetch()}
@@ -189,6 +210,7 @@ function QueuePageContent() {
         patientsLoading={patientsQuery.isLoading}
         doctorsLoading={doctorsQuery.isLoading}
         duplicatePatients={duplicatePatients}
+        allowPriorityQueueEntries={allowPriorityQueueEntries}
         onClose={() => {
           clearDuplicatePatients();
           closeModal();
@@ -212,6 +234,4 @@ function QueuePageContent() {
     </div>
   );
 }
-
-
 

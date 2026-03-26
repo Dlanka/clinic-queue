@@ -3,11 +3,17 @@ import { Badge, Button, PageHeader } from "@/components/ui";
 
 interface QueuePageHeaderProps {
   autoRefresh: boolean;
+  autoRefreshIntervalSeconds: number;
   canAddToQueue: boolean;
   onCreate: () => void;
 }
 
-export function QueuePageHeader({ autoRefresh, canAddToQueue, onCreate }: QueuePageHeaderProps) {
+export function QueuePageHeader({
+  autoRefresh,
+  autoRefreshIntervalSeconds,
+  canAddToQueue,
+  onCreate
+}: QueuePageHeaderProps) {
   return (
     <PageHeader
       title="Queue"
@@ -16,7 +22,7 @@ export function QueuePageHeader({ autoRefresh, canAddToQueue, onCreate }: QueueP
       action={
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="capitalize" tone="success" withDot>
-            {autoRefresh ? "Live - Auto-refresh 30s" : "Paused"}
+            {autoRefresh ? `Live - Auto-refresh ${autoRefreshIntervalSeconds}s` : "Paused"}
           </Badge>
 
           {canAddToQueue ? (
@@ -29,3 +35,4 @@ export function QueuePageHeader({ autoRefresh, canAddToQueue, onCreate }: QueueP
     />
   );
 }
+
