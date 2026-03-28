@@ -135,6 +135,34 @@ body {
     @apply bg-neutral-variant-90/80;
   }
 
+  .g-linear::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .g-linear-primary::after {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary), transparent);
+  }
+
+  .g-linear-success::after {
+    background: linear-gradient(90deg, var(--color-success), transparent);
+  }
+
+  .g-linear-warning::after {
+    background: linear-gradient(90deg, var(--color-warning), transparent);
+  }
+
+  .g-linear-danger::after {
+    background: linear-gradient(90deg, var(--color-danger), transparent);
+  }
+
+  .g-linear-info::after {
+    background: linear-gradient(90deg, var(--color-info), transparent);
+  }
+
   .scrollbar-thin-minimal {
     scrollbar-width: thin;
     scrollbar-color: var(--color-neutral-70) transparent;

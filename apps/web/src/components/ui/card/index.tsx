@@ -1,9 +1,9 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { iconMap, type IconName } from "@/config/icons";
-import { cardStyles } from "./card.tv";
+import { cardStyles, CardVariant } from "./card.tv";
 
-interface CardProps extends PropsWithChildren {
+interface CardProps extends PropsWithChildren, CardVariant {
   className?: string;
 }
 
@@ -22,8 +22,8 @@ interface CardBodyProps extends PropsWithChildren {
   className?: string;
 }
 
-function CardRoot({ className, children }: CardProps) {
-  const styles = cardStyles();
+function CardRoot({ className, children, variant }: CardProps) {
+  const styles = cardStyles({ variant });
   return <div className={cn(styles.root(), className)}>{children}</div>;
 }
 

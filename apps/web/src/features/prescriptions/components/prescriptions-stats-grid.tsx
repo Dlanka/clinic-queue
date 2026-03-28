@@ -30,7 +30,7 @@ export function PrescriptionsStatsGrid({ counts }: PrescriptionsStatsGridProps) 
         </Card.Body>
       </Card>
 
-      <Card>
+      <Card variant="warning">
         <Card.Body className="flex items-center gap-3 px-5 py-4">
           <span className="grid size-10 place-items-center rounded-md bg-warning-soft text-warning">
             <ClockIcon size={18} />
@@ -42,7 +42,7 @@ export function PrescriptionsStatsGrid({ counts }: PrescriptionsStatsGridProps) 
         </Card.Body>
       </Card>
 
-      <Card>
+      <Card variant="success">
         <Card.Body className="flex items-center gap-3 px-5 py-4">
           <span className="grid size-10 place-items-center rounded-md bg-success-soft text-success">
             <CheckIcon size={18} />
@@ -54,7 +54,7 @@ export function PrescriptionsStatsGrid({ counts }: PrescriptionsStatsGridProps) 
         </Card.Body>
       </Card>
 
-      <Card>
+      <Card variant="info">
         <Card.Body className="flex items-center gap-3 px-5 py-4">
           <span className="grid size-10 place-items-center rounded-md bg-primary-soft text-primary">
             <BoxIcon size={18} />
