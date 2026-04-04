@@ -3,6 +3,7 @@ import express from "express";
 import { appointmentRouter } from "./routes/appointment.routes";
 import { connectToDatabase } from "./config/database";
 import { env } from "./config/env";
+import { cors } from "./middlewares/cors";
 import { csrfGuard } from "./middlewares/csrf-guard";
 import { errorHandler } from "./middlewares/error-handler";
 import { rateLimit } from "./middlewares/rate-limit";
@@ -24,6 +25,7 @@ const app = express();
 
 app.use(requestLogger);
 app.use(securityHeaders);
+app.use(cors);
 app.use(rateLimit);
 app.use(express.json());
 app.use(cookieParser());

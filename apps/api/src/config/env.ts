@@ -11,6 +11,7 @@ const envSchema = z.object({
   JWT_REFRESH_TTL: z.string().default("7d"),
   JWT_LOGIN_TTL: z.string().default("5m"),
   COOKIE_SAME_SITE: z.enum(["lax", "none"]).default("lax"),
+  CORS_ORIGINS: z.string().default("http://localhost:5173"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120)
 });
@@ -24,3 +25,6 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export const isProduction = env.NODE_ENV === "production";
+export const corsOrigins = env.CORS_ORIGINS.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
