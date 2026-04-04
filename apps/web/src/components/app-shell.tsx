@@ -175,12 +175,12 @@ export function AppShell({ children }: PropsWithChildren) {
         />
 
         <motion.main
-          className="ml-0 mr-6 h-[calc(100vh-74px)] max-h-[calc(100vh-74px)] overflow-hidden rounded-xl bg-neutral-10 md:ml-sidebar-collapsed scrollbar-thin-minimal"
+          className="border border-neutral-40 ml-0 mr-6 h-[calc(100vh-74px)] max-h-[calc(100vh-74px)] overflow-hidden rounded-xl bg-neutral-10 md:ml-sidebar-collapsed scrollbar-thin-minimal"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, delay: 0.05 }}
         >
-          <div className="h-full w-full overflow-auto p-4 md:p-8">{children}</div>
+          <div className="h-full w-full overflow-auto p-4 md:p-8 ">{children}</div>
         </motion.main>
       </div>
     </div>

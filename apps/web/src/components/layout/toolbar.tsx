@@ -11,9 +11,14 @@ interface ToolbarProps {
 export function Toolbar({ onOpenMenu, onOpenProfile, profileLabel, tenantName }: ToolbarProps) {
   return (
     <header className="fixed inset-x-0 top-0 z-30 flex h-toolbar items-center gap-3 bg-neutral-20 px-0 pr-3 backdrop-blur-sm md:pr-6">
-      <div className="flex h-toolbar w-sidebar-collapsed items-center justify-center">
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-linear-to-br from-primary to-tertiary text-neutral-0 shadow-[0_0_16px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]">
-          <Activity size={18} />
+      <div className="flex h-toolbar  items-center justify-center mx-4">
+        <div className="flex  border-2 border-primary rounded-full overflow-hidden ">
+          <div className="text-primary px-2 py-1 flex items-center justify-center">
+            <Activity size={16} strokeWidth={3} />
+          </div>
+          <span className="flex items-center justify-center px-2 text-neutral-0 bg-primary font-extrabold text-base">
+            Zynic
+          </span>
         </div>
       </div>
 
