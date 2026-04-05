@@ -36,9 +36,22 @@ function writeSessionCookies(
   accessToken: string,
   refreshToken: string
 ) {
+  const csrfToken = generateCsrfToken();
   res.cookie(ACCESS_COOKIE_NAME, accessToken, accessCookieOptions);
   res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions);
-  res.cookie(CSRF_COOKIE_NAME, generateCsrfToken(), csrfCookieOptions);
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
+  return csrfToken;
+}
+
+function ensureCsrfToken(req: Parameters<RequestHandler>[0], res: Parameters<RequestHandler>[1]) {
+  const existing = req.cookies[CSRF_COOKIE_NAME] as string | undefined;
+  if (existing) {
+    return existing;
+  }
+
+  const csrfToken = generateCsrfToken();
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
+  return csrfToken;
 }
 
 function clearSessionCookies(res: Parameters<RequestHandler>[1]) {
@@ -65,8 +78,8 @@ export const AuthController = {
         });
       }
 
-      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
-      return res.status(200).json({ mode: "LOGGED_IN" });
+      const csrfToken = writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      return res.status(200).json({ mode: "LOGGED_IN", csrfToken });
     } catch (error) {
       return next(error);
     }
@@ -79,8 +92,8 @@ export const AuthController = {
         tenantId: req.body.tenantId
       });
 
-      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
-      return res.status(200).json({ mode: "LOGGED_IN" });
+      const csrfToken = writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      return res.status(200).json({ mode: "LOGGED_IN", csrfToken });
     } catch (error) {
       return next(error);
     }
@@ -94,9 +107,9 @@ export const AuthController = {
       }
 
       const result = await AuthService.refresh(refreshToken);
-      writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
+      const csrfToken = writeSessionCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
 
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({ ok: true, csrfToken });
     } catch (error) {
       return next(error);
     }
@@ -123,7 +136,8 @@ export const AuthController = {
       }
 
       const session = await AuthService.me(req.auth);
-      return res.status(200).json(session);
+      const csrfToken = ensureCsrfToken(req, res);
+      return res.status(200).json({ ...session, csrfToken });
     } catch (error) {
       return next(error);
     }

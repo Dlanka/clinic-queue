@@ -2,12 +2,24 @@ import axios from "axios";
 
 const CSRF_COOKIE_NAME = "csrf_token";
 const CSRF_HEADER = "x-csrf-token";
+let csrfTokenMemory: string | null = null;
 
 function readCookie(name: string) {
   const tokenPrefix = `${name}=`;
   const chunks = document.cookie.split(";").map((part) => part.trim());
   const chunk = chunks.find((part) => part.startsWith(tokenPrefix));
   return chunk ? decodeURIComponent(chunk.slice(tokenPrefix.length)) : "";
+}
+
+function syncCsrfToken(payload: unknown) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "csrfToken" in payload &&
+    typeof (payload as { csrfToken?: unknown }).csrfToken === "string"
+  ) {
+    csrfTokenMemory = (payload as { csrfToken: string }).csrfToken;
+  }
 }
 
 export const http = axios.create({
@@ -32,15 +44,20 @@ function flushRefreshQueue(error?: unknown) {
 }
 
 async function refreshSession() {
-  await axios.post(`${import.meta.env.VITE_API_BASE_URL || "/api"}${REFRESH_ENDPOINT}`, {}, {
-    withCredentials: true
-  });
+  const { data } = await axios.post(
+    `${import.meta.env.VITE_API_BASE_URL || "/api"}${REFRESH_ENDPOINT}`,
+    {},
+    {
+      withCredentials: true
+    }
+  );
+  syncCsrfToken(data);
 }
 
 http.interceptors.request.use((config) => {
   const method = (config.method || "get").toUpperCase();
   if (method === "POST" || method === "PATCH" || method === "DELETE") {
-    const csrfToken = readCookie(CSRF_COOKIE_NAME);
+    const csrfToken = csrfTokenMemory || readCookie(CSRF_COOKIE_NAME);
     if (csrfToken) {
       config.headers[CSRF_HEADER] = csrfToken;
     }
@@ -50,7 +67,10 @@ http.interceptors.request.use((config) => {
 });
 
 http.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    syncCsrfToken(response.data);
+    return response;
+  },
   async (error) => {
     if (!axios.isAxiosError(error)) {
       return Promise.reject(error);
