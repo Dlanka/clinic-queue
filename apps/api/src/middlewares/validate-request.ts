@@ -27,3 +27,16 @@ export function validateParams(schema: ZodType): RequestHandler {
     return next();
   };
 }
+
+export function validateQuery(schema: ZodType): RequestHandler {
+  return (req, _res, next) => {
+    const parsed = schema.safeParse(req.query);
+
+    if (!parsed.success) {
+      return next(new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid request query"));
+    }
+
+    req.query = parsed.data as never;
+    return next();
+  };
+}

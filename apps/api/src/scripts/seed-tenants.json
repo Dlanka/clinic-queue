@@ -1,0 +1,16 @@
+[
+  {
+    "tenantName": "Tenant A Clinic",
+    "adminEmail": "admin@tenanta.com",
+    "adminName": "Tenant A Admin",
+    "adminPassword": "Admin123!",
+    "roles": ["ADMIN"]
+  },
+  {
+    "tenantName": "Tenant B Clinic",
+    "adminEmail": "admin@tenantb.com",
+    "adminName": "Tenant B Admin",
+    "adminPassword": "Admin123!",
+    "roles": ["ADMIN"]
+  }
+]

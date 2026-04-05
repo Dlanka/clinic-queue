@@ -49,7 +49,8 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
       tenantId: payload.tenantId,
       roles: membership.roles,
       sessionId: payload.sessionId,
-      refreshTokenId: payload.refreshTokenId
+      refreshTokenId: payload.refreshTokenId,
+      isSuperAdmin: Boolean(account.isSuperAdmin)
     };
     return next();
   } catch {

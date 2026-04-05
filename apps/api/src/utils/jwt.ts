@@ -10,7 +10,8 @@ function normalizePayload(payload: TokenPayload): AuthContext {
     tenantId: payload.tenantId,
     roles: payload.roles,
     sessionId: payload.sessionId,
-    refreshTokenId: payload.refreshTokenId
+    refreshTokenId: payload.refreshTokenId,
+    isSuperAdmin: payload.isSuperAdmin
   };
 }
 
@@ -23,7 +24,8 @@ export function signAccessToken(auth: AuthContext) {
       tenantId: auth.tenantId,
       roles: auth.roles,
       sessionId: auth.sessionId,
-      refreshTokenId: auth.refreshTokenId
+      refreshTokenId: auth.refreshTokenId,
+      isSuperAdmin: auth.isSuperAdmin
     },
     env.JWT_ACCESS_SECRET,
     { expiresIn: env.JWT_ACCESS_TTL as StringValue }
@@ -39,7 +41,8 @@ export function signRefreshToken(auth: AuthContext) {
       tenantId: auth.tenantId,
       roles: auth.roles,
       sessionId: auth.sessionId,
-      refreshTokenId: auth.refreshTokenId
+      refreshTokenId: auth.refreshTokenId,
+      isSuperAdmin: auth.isSuperAdmin
     },
     env.JWT_REFRESH_SECRET,
     { expiresIn: env.JWT_REFRESH_TTL as StringValue }

@@ -79,7 +79,8 @@ interface AccountSessionSummary {
 
 function buildSessionAuth(
   membership: SessionMembership,
-  session: { sessionId: string; refreshTokenId: string }
+  session: { sessionId: string; refreshTokenId: string },
+  isSuperAdmin = false
 ): AuthContext {
   return {
     accountId: membership.accountId.toString(),
@@ -87,7 +88,8 @@ function buildSessionAuth(
     tenantId: membership.tenantId.toString(),
     roles: membership.roles,
     sessionId: session.sessionId,
-    refreshTokenId: session.refreshTokenId
+    refreshTokenId: session.refreshTokenId,
+    isSuperAdmin
   };
 }
 
@@ -103,7 +105,10 @@ const ACTIVE_SESSION_FILTER = {
 };
 
 export class AuthService {
-  private static async createSessionAuth(membership: SessionMembership): Promise<AuthContext> {
+  private static async createSessionAuth(
+    membership: SessionMembership,
+    isSuperAdmin = false
+  ): Promise<AuthContext> {
     const tenantId = membership.tenantId.toString();
     const memberId = membership._id.toString();
     const accountId = membership.accountId.toString();
@@ -132,7 +137,7 @@ export class AuthService {
       lastSeenAt: new Date()
     });
 
-    return buildSessionAuth(membership, { sessionId, refreshTokenId });
+    return buildSessionAuth(membership, { sessionId, refreshTokenId }, isSuperAdmin);
   }
 
   static async login(input: LoginInput): Promise<LoginResult> {
@@ -164,7 +169,7 @@ export class AuthService {
       if (!membership) {
         throw new HttpError(403, "No active tenant memberships");
       }
-      const auth = await AuthService.createSessionAuth(membership);
+      const auth = await AuthService.createSessionAuth(membership, account.isSuperAdmin);
       return {
         mode: "LOGGED_IN",
         auth,
@@ -217,7 +222,21 @@ export class AuthService {
       throw new HttpError(403, "No active membership for selected tenant");
     }
 
-    const auth = await AuthService.createSessionAuth(membership as SessionMembership);
+    const account = await AccountModel.findOne({
+      _id: loginPayload.accountId,
+      status: "ACTIVE"
+    })
+      .select("_id isSuperAdmin")
+      .lean();
+
+    if (!account) {
+      throw new HttpError(401, "Account not found");
+    }
+
+    const auth = await AuthService.createSessionAuth(
+      membership as SessionMembership,
+      Boolean(account.isSuperAdmin)
+    );
     return {
       mode: "LOGGED_IN" as const,
       auth,
@@ -268,10 +287,14 @@ export class AuthService {
     session.lastSeenAt = new Date();
     await session.save();
 
-    const auth = buildSessionAuth(membership as SessionMembership, {
-      sessionId: session.sessionId,
-      refreshTokenId: nextRefreshTokenId
-    });
+    const auth = buildSessionAuth(
+      membership as SessionMembership,
+      {
+        sessionId: session.sessionId,
+        refreshTokenId: nextRefreshTokenId
+      },
+      Boolean(account.isSuperAdmin)
+    );
     return {
       auth,
       tokens: buildTokens(auth)
@@ -318,6 +341,7 @@ export class AuthService {
         id: account._id.toString(),
         email: account.email,
         name: account.name,
+        isSuperAdmin: account.isSuperAdmin ?? false,
         preferences: {
           language: account.preferences?.language ?? "en",
           timezone: account.preferences?.timezone ?? "Asia/Colombo",
@@ -358,6 +382,7 @@ export class AuthService {
         id: account._id.toString(),
         email: account.email,
         name: account.name,
+        isSuperAdmin: account.isSuperAdmin ?? false,
         preferences: {
           language: account.preferences?.language ?? "en",
           timezone: account.preferences?.timezone ?? "Asia/Colombo",

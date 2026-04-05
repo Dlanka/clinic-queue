@@ -5,6 +5,7 @@ export interface AuthContext {
   roles: string[];
   sessionId: string;
   refreshTokenId: string;
+  isSuperAdmin: boolean;
 }
 
 export interface TokenPayload extends AuthContext {

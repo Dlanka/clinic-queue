@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import { appointmentRouter } from "./routes/appointment.routes";
+import { adminRouter } from "./routes/admin.routes";
 import { connectToDatabase } from "./config/database";
 import { env } from "./config/env";
 import { cors } from "./middlewares/cors";
@@ -34,6 +35,7 @@ app.use(csrfGuard);
 
 app.use(healthRouter);
 app.use("/auth", authRouter);
+app.use("/admin", adminRouter);
 app.use("/members", memberRouter);
 app.use("/doctors", doctorRouter);
 app.use("/appointments", appointmentRouter);

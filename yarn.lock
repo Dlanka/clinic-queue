@@ -238,6 +238,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@clinic-queue/admin@workspace:apps/admin":
+  version: 0.0.0-use.local
+  resolution: "@clinic-queue/admin@workspace:apps/admin"
+  dependencies:
+    "@tailwindcss/vite": "npm:^4.0.8"
+    "@tanstack/react-query": "npm:^5.67.2"
+    "@tanstack/react-router": "npm:1.166.2"
+    "@types/react": "npm:^19.0.8"
+    "@types/react-dom": "npm:^19.0.3"
+    "@vitejs/plugin-react": "npm:^4.3.4"
+    axios: "npm:^1.8.2"
+    react: "npm:^19.0.0"
+    react-dom: "npm:^19.0.0"
+    tailwindcss: "npm:^4.0.8"
+    typescript: "npm:^5.7.3"
+    vite: "npm:^6.1.0"
+  languageName: unknown
+  linkType: soft
+
 "@clinic-queue/api@workspace:apps/api":
   version: 0.0.0-use.local
   resolution: "@clinic-queue/api@workspace:apps/api"

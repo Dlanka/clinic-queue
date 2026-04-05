@@ -6,10 +6,11 @@ import { TenantModel } from "../models/tenant.model";
 
 const seedConfig = {
   tenantAName: process.env.SEED_TENANT_A_NAME ?? "Tenant A Clinic",
-  tenantBName: process.env.SEED_TENANT_B_NAME ?? "Tenant B Clinic",
+  tenantBName: process.env.SEED_TENANT_B_NAME?.trim() || undefined,
   memberName: process.env.SEED_MEMBER_NAME ?? "Multi Tenant User",
   memberEmail: (process.env.SEED_MEMBER_EMAIL ?? "admin@demo.com").toLowerCase(),
-  memberPassword: process.env.SEED_MEMBER_PASSWORD ?? "Admin123!"
+  memberPassword: process.env.SEED_MEMBER_PASSWORD ?? "Admin123!",
+  memberIsSuperAdmin: process.env.SEED_MEMBER_IS_SUPER_ADMIN === "true"
 };
 
 async function run() {
@@ -25,18 +26,19 @@ async function run() {
     }
   }
 
-  const [tenantA, tenantB] = await Promise.all([
-    TenantModel.findOneAndUpdate(
-      { name: seedConfig.tenantAName },
-      { name: seedConfig.tenantAName, status: "ACTIVE" },
-      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
-    ),
-    TenantModel.findOneAndUpdate(
-      { name: seedConfig.tenantBName },
-      { name: seedConfig.tenantBName, status: "ACTIVE" },
-      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
-    )
-  ]);
+  const tenantA = await TenantModel.findOneAndUpdate(
+    { name: seedConfig.tenantAName },
+    { name: seedConfig.tenantAName, status: "ACTIVE" },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+  );
+
+  const tenantB = seedConfig.tenantBName
+    ? await TenantModel.findOneAndUpdate(
+        { name: seedConfig.tenantBName },
+        { name: seedConfig.tenantBName, status: "ACTIVE" },
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+      )
+    : null;
 
   const passwordHash = await bcrypt.hash(seedConfig.memberPassword, 12);
   const account = await AccountModel.findOneAndUpdate(
@@ -45,12 +47,13 @@ async function run() {
       email: seedConfig.memberEmail,
       name: seedConfig.memberName,
       passwordHash,
+      isSuperAdmin: seedConfig.memberIsSuperAdmin,
       status: "ACTIVE"
     },
     { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
   );
 
-  await Promise.all([
+  const membershipJobs = [
     TenantMemberModel.findOneAndUpdate(
       { tenantId: tenantA._id, accountId: account._id },
       {
@@ -60,23 +63,35 @@ async function run() {
         status: "ACTIVE"
       },
       { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
-    ),
-    TenantMemberModel.findOneAndUpdate(
-      { tenantId: tenantB._id, accountId: account._id },
-      {
-        tenantId: tenantB._id,
-        accountId: account._id,
-        roles: ["DOCTOR"],
-        status: "ACTIVE"
-      },
-      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     )
-  ]);
+  ];
+
+  if (tenantB) {
+    membershipJobs.push(
+      TenantMemberModel.findOneAndUpdate(
+        { tenantId: tenantB._id, accountId: account._id },
+        {
+          tenantId: tenantB._id,
+          accountId: account._id,
+          roles: ["DOCTOR"],
+          status: "ACTIVE"
+        },
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+      )
+    );
+  }
+
+  await Promise.all(membershipJobs);
 
   console.log("Seed completed");
   console.log(`Account Email: ${seedConfig.memberEmail}`);
+  console.log(`Super Admin: ${seedConfig.memberIsSuperAdmin ? "YES" : "NO"}`);
   console.log(`Tenant A ID: ${tenantA._id.toString()} roles: ADMIN`);
-  console.log(`Tenant B ID: ${tenantB._id.toString()} roles: DOCTOR`);
+  if (tenantB) {
+    console.log(`Tenant B ID: ${tenantB._id.toString()} roles: DOCTOR`);
+  } else {
+    console.log("Tenant B skipped (SEED_TENANT_B_NAME not provided)");
+  }
 }
 
 run()

@@ -13,6 +13,10 @@ const TENANT_OPTIONAL_PATHS = new Set([
 ]);
 
 export const resolveTenant: RequestHandler = async (req, _res, next) => {
+  if (req.path.startsWith("/admin")) {
+    return next();
+  }
+
   if (TENANT_OPTIONAL_PATHS.has(req.path)) {
     return next();
   }

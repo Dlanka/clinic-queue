@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { iconMap, type IconName } from "@/config/icons";
 import { cn } from "@/lib/cn";
 import { IconButton } from "../icon-button";
-import { SectionDivider } from "../section-divider";
 
 type CollapsibleSectionProps = {
   label: string | React.ReactNode;

@@ -12,7 +12,8 @@
     "lint": "yarn workspaces foreach -A -pt run lint",
     "format": "yarn workspaces foreach -A -pt run format",
     "typecheck": "yarn workspaces foreach -A -pt run typecheck",
-    "build": "yarn workspaces foreach -A -pt run build"
+    "build": "yarn workspaces foreach -A -pt run build",
+    "dev:admin": "yarn workspace @clinic-queue/admin dev"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

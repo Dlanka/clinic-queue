@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Paracetamol 500mg tablet",
+    "category": "Antipyretics",
+    "unit": "tablet",
+    "stockQty": 200,
+    "reorderLevel": 40,
+    "price": 12,
+    "status": "ACTIVE"
+  },
+  {
+    "name": "Amoxicillin 500mg capsule",
+    "category": "Antibiotics",
+    "unit": "capsule",
+    "stockQty": 120,
+    "reorderLevel": 30,
+    "price": 35,
+    "status": "ACTIVE"
+  },
+  {
+    "name": "Azithromycin 250mg tablet",
+    "category": "Antibiotics",
+    "unit": "tablet",
+    "stockQty": 80,
+    "reorderLevel": 20,
+    "price": 55,
+    "status": "ACTIVE"
+  },
+  {
+    "name": "Cetirizine 10mg tablet",
+    "category": "Antihistamines",
+    "unit": "tablet",
+    "stockQty": 140,
+    "reorderLevel": 30,
+    "price": 18,
+    "status": "ACTIVE"
+  },
+  {
+    "name": "Metformin 500mg tablet",
+    "category": "Diabetes",
+    "unit": "tablet",
+    "stockQty": 160,
+    "reorderLevel": 40,
+    "price": 25,
+    "status": "ACTIVE"
+  },
+  {
+    "name": "Amlodipine 5mg tablet",
+    "category": "Cardiovascular",
+    "unit": "tablet",
+    "stockQty": 90,
+    "reorderLevel": 25,
+    "price": 30,
+    "status": "ACTIVE"
+  }
+]

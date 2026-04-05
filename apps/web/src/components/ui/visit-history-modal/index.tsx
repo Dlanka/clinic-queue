@@ -1,4 +1,4 @@
-ï»¿import { format } from "date-fns";
+import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
@@ -19,21 +19,6 @@ type VisitHistoryModalProps = {
   prescriptions: Prescription[];
   loading?: boolean;
 };
-
-function visitDurationLabel(visitedAt: string) {
-  const totalMinutes = Math.max(
-    1,
-    Math.floor((Date.now() - new Date(visitedAt).getTime()) / 60_000)
-  );
-
-  if (totalMinutes < 60) {
-    return `${totalMinutes} min`;
-  }
-
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
-}
 
 function ReadOnlyField({
   label,
@@ -92,7 +77,7 @@ export function VisitHistoryModal({
       open={open}
       onClose={onClose}
       title="Visit History"
-      description={`${patientName} Â· All previous visits`}
+      description={`${patientName} · All previous visits`}
       iconName="calendarDays"
       variant="info"
       panelClassName="max-w-lg"
@@ -120,7 +105,7 @@ export function VisitHistoryModal({
                   <div className="flex gap-2 items-center">
                     <span className="font-bold flex items-center gap-2">
                       <span className="size-2.5 rounded-full border border-primary flex items-center justify-center after:content-around after:bg-primary after:size-1 after:block after:rounded-full"></span>
-                      {format(new Date(visit.visitedAt), "MMM d, yyyy Â· h:mm a")}
+                      {format(new Date(visit.visitedAt), "MMM d, yyyy · h:mm a")}
                     </span>
                     <span className="text-neutral-70 text-2xs">
                       {formatDoctorDisplayName(visit.doctorName)}
@@ -182,7 +167,7 @@ export function VisitHistoryModal({
                     <VitalMetricCard
                       label="Temp"
                       iconName="thermometer"
-                      unit="Â°F"
+                      unit="°F"
                       valueSlot={
                         <p className="text-xl font-bold text-neutral-95">
                           {visit.temperature ?? "-"}
@@ -255,3 +240,4 @@ export function VisitHistoryModal({
     </RightPanelModal>
   );
 }
+

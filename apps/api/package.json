@@ -9,7 +9,9 @@
     "format": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "seed:tenants": "tsx src/scripts/seed-tenants.ts",
+    "master-data:upsert": "tsx src/scripts/update-master-data.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

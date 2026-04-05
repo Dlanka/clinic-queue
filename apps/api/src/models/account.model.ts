@@ -14,6 +14,7 @@ export interface Account {
   };
   passwordChangedAt?: Date;
   status: "ACTIVE" | "DISABLED";
+  isSuperAdmin: boolean;
 }
 
 const accountSchema = new Schema<Account>(
@@ -30,6 +31,7 @@ const accountSchema = new Schema<Account>(
       inAppNotifications: { type: Boolean, default: true }
     },
     passwordChangedAt: { type: Date, default: () => new Date() },
+    isSuperAdmin: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["ACTIVE", "DISABLED"],
